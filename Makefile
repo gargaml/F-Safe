@@ -5,7 +5,7 @@ FLAGS = -w,Ae,-warn-error,A
 
 all: $(TARGS)
 
-fsafe: _build/fsafe.$(KIND)
+fsafe: _build/main.$(KIND)
 	cp $< $@
 
 _build/%.$(KIND): $(SRCS)

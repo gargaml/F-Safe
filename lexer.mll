@@ -1,4 +1,14 @@
+(*****************************************************************************)
+(*                                                                           *)
+(* F-Safe                                                                    *)
+(*                                                                           *)
+(* File        : lexer.mll                                                   *)
+(* Description : fsafe lexer                                                 *)
+(*                                                                           *)
+(*****************************************************************************)
+
 {
+  open Parser
   let line = ref 1
 }
 
@@ -38,6 +48,7 @@ rule token = parse
       { IDENT (id) }
   | majident as mid
       { MAJIDENT (mid) }
+  | eof { EOF }
   | _ { failwith((Lexing.lexeme lexbuf) ^
 		    ": error at line " ^ string_of_int !line)}
       
