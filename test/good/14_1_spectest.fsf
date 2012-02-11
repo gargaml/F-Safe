@@ -1,0 +1,5 @@
+def in_fast[T](e:T,s:Set[T]) : bool = case s(e) {
+| undefined => False
+| _:unit => True
+}
+

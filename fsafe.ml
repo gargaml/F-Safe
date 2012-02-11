@@ -13,16 +13,47 @@ type data_constructor = string
 
 type type_constructor = string 
 
-type 'a ptyp =
-  | Tvar of 'a 
-  | Tarrow of 'a ptyp * 'a ptyp
-      
-type typ = type_var ptyp
-    
-type data_constructor_definition =  DefCon of data_constructor * typ list 
+
+type ptyp =
+  | Tvar of string
+  | Tarrow of string *  ptyp
+  | Tparam of string *  ptyp list
+
+
+type param =  Param of string * ptyp
+
+type data_constructor_definition =  DefCon of data_constructor * param list 
     
 type data_type_definition = 
-  | DefDatatype of type_constructor * type_var list
+  | DefDatatype of type_constructor * ptyp list
     * data_constructor_definition list
 
-type program = Prog of data_type_definition list (* * expression *)
+
+type motif = 
+  | Var_filt of param
+  | AnonVar of ptyp
+  | Constante_filt of string * ptyp list * motif list
+type filter = Filter of motif list * expression
+and
+  assign = Assign of param * expression
+and
+ expression = 
+  | Var of string
+  | Constante of string * ptyp list * expression list
+  | Let of assign list * expression
+  | Case of expression list * filter list
+  | Call of string * ptyp list * expression list
+  | Anon_fun of ptyp list * param list * ptyp * expression
+
+type function_definition =
+  | DefFunction of string * ptyp list * param list * ptyp * expression list
+
+type program =
+  | Program of param list * expression list
+
+type declaration = 
+  | DeclDataType of data_type_definition list
+  | DeclFunction of function_definition list
+  | DeclProgram of program
+
+type fsafe = Fsafe of declaration list 

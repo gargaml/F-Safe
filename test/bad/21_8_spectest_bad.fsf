@@ -1,0 +1,2 @@
+type notbad7 = Notbad7(n:notbad8) and notbad8 = NotBad8(n:notbad7) | Leaf8
+type bad8[T] = Bad8(n:bad8[bad8[nat]])

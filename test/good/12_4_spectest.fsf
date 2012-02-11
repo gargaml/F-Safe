@@ -1,0 +1,8 @@
+type list[T] = Nil | Cons(hd:T,tl:list[T])
+
+def map[T,U](f:T->U,l:list[T]):list[U] = case l {
+| Nil[T] => Nil[U]
+| Cons[T](e:T,l’:list[T]) => Cons[U](f(e),map[T,U](f,l’))
+}
+
+map[nat,bool](is_even,Cons[nat](1,Cons[nat](2,Cons[nat](3,Cons[nat](4,Nil[nat])))))

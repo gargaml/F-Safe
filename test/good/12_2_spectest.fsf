@@ -1,0 +1,1 @@
+type list[T] = Nil | Cons(hd:T,tl:list[T])

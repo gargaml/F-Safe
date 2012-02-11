@@ -1,0 +1,1 @@
+type bad3[T,T] = Bad3(e:T,f:T)

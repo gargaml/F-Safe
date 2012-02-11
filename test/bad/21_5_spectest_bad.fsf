@@ -1,0 +1,3 @@
+type notbad5 = Bad5
+type notbad5’ = Bad5
+

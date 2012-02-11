@@ -17,10 +17,19 @@ open Interpret
 open Typechecker
 open Termination
 
-(* parse : Lexing.lexbuf -> ?? *)
-let parse lexbuf =
-  Parser.program Lexer.token lexbuf
 
+
+(* parse : Lexing.lexbuf -> ?? *)
+
+let parse lexbuf =
+  try
+    Parser.fsafe Lexer.token lexbuf
+  with Parsing.Parse_error -> 
+   let curr = lexbuf.Lexing.lex_curr_p in
+        let line = curr.Lexing.pos_lnum in
+        let cnum = curr.Lexing.pos_cnum - curr.Lexing.pos_bol in
+        let tok = Lexing.lexeme lexbuf in
+    printf "line is %d cnul is %d token is %s error here\n " line cnum tok ; Fsafe.Fsafe([])
 (* handle : string -> () *)
 let handle filename =
   
