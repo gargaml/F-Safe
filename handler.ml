@@ -29,7 +29,7 @@ let parse lexbuf =
         let line = curr.Lexing.pos_lnum in
         let cnum = curr.Lexing.pos_cnum - curr.Lexing.pos_bol in
         let tok = Lexing.lexeme lexbuf in
-    printf "line is %d cnul is %d token is %s error here\n " line cnum tok ; Fsafe.Fsafe([])
+    printf "line is %d cnul is %d token is %s error here\n " line cnum tok ; Fsafe.Fsafe([],[],[])
 (* handle : string -> () *)
 let handle filename =
   

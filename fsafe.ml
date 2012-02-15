@@ -27,33 +27,34 @@ type data_constructor_definition =  DefCon of data_constructor * param list
 type data_type_definition = 
   | DefDatatype of type_constructor * ptyp list
     * data_constructor_definition list
-
+type coupleparam = 
+Couple of param * param
 
 type motif = 
   | Var_filt of param
   | AnonVar of ptyp
   | Constante_filt of string * ptyp list * motif list
+  | AppVide of ptyp * ptyp
+  | AppFilter of coupleparam * param
+ 
 type filter = Filter of motif list * expression
+and
+appcouple =
+AppCouple of expression * expression
 and
   assign = Assign of param * expression
 and
  expression = 
   | Var of string
   | Constante of string * ptyp list * expression list
+  | AppConstr of appcouple list * ptyp * ptyp
   | Let of assign list * expression
   | Case of expression list * filter list
   | Call of string * ptyp list * expression list
   | Anon_fun of ptyp list * param list * ptyp * expression
 
-type function_definition =
-  | DefFunction of string * ptyp list * param list * ptyp * expression list
-
-type program =
-  | Program of param list * expression list
-
-type declaration = 
-  | DeclDataType of data_type_definition list
-  | DeclFunction of function_definition list
-  | DeclProgram of program
-
-type fsafe = Fsafe of declaration list 
+type env_local = EnvLocal of assign list
+type var_definition =
+  | DefVar of param list * env_local * expression list
+  | DefFunction of string * param list * ptyp * expression
+type fsafe = Fsafe of data_type_definition list * var_definition list * expression list 
