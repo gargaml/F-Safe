@@ -33,14 +33,16 @@
 %%
 
 fsafe:
-  | list_of_type_dec list_of_var_dec list_of_expr
+  | list_of_type_dec list_of_var_dec program EOF
       { Fsafe($1, $2, $3) }
-
+program :
+  |
+      {[]}
+  | list_of_expr
+      {$1}
 list_of_type_dec :
   | 
       { [] }
-  | type_dec
-      { $1 }
   | type_dec list_of_type_dec
       { $1 @ $2 }
 
@@ -84,14 +86,12 @@ type_decs_and:
 list_of_var_dec:
   | 
       { [] }
-  | var_dec
-      { [$1] }
   | var_dec list_of_var_dec
       { $1::$2 }
 
 var_dec:
-  | DEF list_of_params EQUAL envloc list_of_expr
-      { DefVar($2, $4, $5) }
+  | DEF list_of_params EQUAL envloc LBRACKET list_of_expr RBRACKET
+      { DefVar($2, $4, $6) }
   | DEF list_of_params EQUAL list_of_expr
       { DefVar($2, EnvLocal([]), $4) }
   | DEF fun_def
@@ -132,8 +132,7 @@ list_typevar:
       { $1::$3 }
 
 list_of_expr:
-  | 
-      { [] }
+ 
   | expr
       { [$1] }
   | expr COMMA list_of_expr
@@ -172,10 +171,10 @@ constante:
       { Constante($1, [], []) }
   | MAJIDENT LBRACKET list_typevar RBRACKET
       { Constante($1, $3, []) }
-  | LBRACE list_of_couple RBRACE LBRACKET typevar TYPEARROW typevar RBRACKET
-      { AppConstr($2, $5, $7) }
-  | LBRACE RBRACE LBRACKET typevar TYPEARROW typevar RBRACKET
-      { AppConstr([], $4, $6) }
+  | LBRACE list_of_couple RBRACE LBRACKET typevar RBRACKET
+      { AppConstr($2, $5) }
+  | LBRACE RBRACE LBRACKET typevar RBRACKET
+      { AppConstr([], $4) }
 
  list_of_couple:
   | LPAREN expr COMMA expr RPAREN
@@ -206,8 +205,8 @@ motifs:
       { Filter($2,$4) :: $5 } 
       
 app_filter:
-  | LBRACE RBRACE LBRACKET typevar TYPEARROW typevar RBRACKET
-      { AppVide($4,$6) }
+  | LBRACE RBRACE LBRACKET typevar RBRACKET
+      { AppVide($4) }
   | LBRACE couple COMMA IDENT COLON typevar RBRACE
       {AppFilter($2, Param($4, $6)) }
 

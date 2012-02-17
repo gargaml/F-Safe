@@ -34,7 +34,7 @@ type motif =
   | Var_filt of param
   | AnonVar of ptyp
   | Constante_filt of string * ptyp list * motif list
-  | AppVide of ptyp * ptyp
+  | AppVide of ptyp 
   | AppFilter of coupleparam * param
       
 type filter = Filter of motif list * expression
@@ -45,7 +45,7 @@ and
   expression = 
   | Var of string
   | Constante of string * ptyp list * expression list
-  | AppConstr of appcouple list * ptyp * ptyp
+  | AppConstr of appcouple list * ptyp 
   | Let of param * expression * expression
   | Case of expression list * filter list
   | Call of string * ptyp list * expression list
