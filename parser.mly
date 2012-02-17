@@ -36,7 +36,9 @@ fsafe:
   | list_of_type_dec list_of_var_dec list_of_expr
       { Fsafe($1, $2, $3) }
 
- list_of_type_dec :
+list_of_type_dec :
+  | 
+      { [] }
   | type_dec
       { $1 }
   | type_dec list_of_type_dec
@@ -80,6 +82,8 @@ type_decs_and:
 
 
 list_of_var_dec:
+  | 
+      { [] }
   | var_dec
       { [$1] }
   | var_dec list_of_var_dec
@@ -130,6 +134,8 @@ list_typevar:
       { $1::$3 }
 
 list_of_expr:
+  | 
+      { [] }
   | expr
       { [$1] }
   | expr COMMA list_of_expr
