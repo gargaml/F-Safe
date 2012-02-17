@@ -13,8 +13,8 @@
 }
 
 let eol = '\n'
-let ident = (['a'-'z']['a'-'z' '0'-'9' '_' '\'' ]*)
-let majident = (['A'-'Z']['a'-'z' 'A'-'Z' '0'-'9' '_' '\'' ]*)
+let ident = (['a'-'z']['a'-'z' '0'-'9' '_' '\'']*)
+let majident = (['A'-'Z']['a'-'z' 'A'-'Z' '0'-'9' '_' '\'']*)
 
 let ttype = "type"
 let tand = "and"
