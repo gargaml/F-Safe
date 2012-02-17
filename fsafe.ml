@@ -36,24 +36,22 @@ type motif =
   | Constante_filt of string * ptyp list * motif list
   | AppVide of ptyp * ptyp
   | AppFilter of coupleparam * param
- 
+      
 type filter = Filter of motif list * expression
 and
-appcouple =
-AppCouple of expression * expression
+  appcouple =
+    AppCouple of expression * expression
 and
-  assign = Assign of param * expression
-and
- expression = 
+  expression = 
   | Var of string
   | Constante of string * ptyp list * expression list
   | AppConstr of appcouple list * ptyp * ptyp
-  | Let of assign list * expression
+  | Let of param * expression * expression
   | Case of expression list * filter list
   | Call of string * ptyp list * expression list
   | Anon_fun of ptyp list * param list * ptyp * expression
 
-type env_local = EnvLocal of assign list
+type env_local = EnvLocal of (param * expression) list
 type var_definition =
   | DefVar of param list * env_local * expression list
   | DefFunction of string * param list * ptyp * expression
