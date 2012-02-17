@@ -102,8 +102,6 @@ envloc:
       { EnvLocal($3) }
 
 fun_def:
-  | IDENT LPAREN RPAREN COLON typevar EQUAL expr
-      { DefFunction ($1, [], $5, $7 ) }
   | IDENT LPAREN list_of_params RPAREN COLON typevar EQUAL expr
       { DefFunction ($1, $3, $6, $8) } 
 
@@ -155,7 +153,9 @@ expr:
   | IDENT LBRACKET list_typevar RBRACKET LPAREN list_of_expr RPAREN
       { Call ($1, $3, $6) }
   | FUN LBRACKET list_typevar RBRACKET LPAREN list_of_params RPAREN
-      COLON typevar ARROW expr { Anon_fun($3, $6, $9, $11) } 
+      COLON typevar ARROW expr { Anon_fun($3, $6, $9, $11) }
+  | FUN LPAREN list_of_params RPAREN
+      COLON typevar ARROW expr { Anon_fun([], $3, $6, $8) }
 
 list_of_assigns:
   | IDENT COLON typevar EQUAL expr

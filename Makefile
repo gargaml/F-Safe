@@ -13,7 +13,7 @@ fswin.exe: _buildWin32/main.$(KIND)
 	cp $< $@
 
 _build/%.$(KIND): $(SRCS)
-	ocamlbuild -classic-display -cflags $(FLAGS) -no-links $*.$(KIND)
+	ocamlbuild -use-menhir -classic-display -cflags $(FLAGS) -no-links $*.$(KIND)
 
 $(TARGS_WINDIR)/%.$(KIND): $(SRCS)
 	ocamlbuild -classic-display -cflags $(FLAGS) -no-links -build-dir $(TARGS_WINDIR) $*.$(KIND)
