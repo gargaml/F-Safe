@@ -22,7 +22,8 @@
 %token <string> IDENT
 %token <string> MAJIDENT
 
-%token LPAREN RPAREN LBRACKET RBRACKET LBRACE RBRACE COMMA COLON PIPE EQUAL EOF ARROW TYPEARROW
+%token LPAREN RPAREN LBRACKET RBRACKET LBRACE RBRACE
+%token COMMA COLON PIPE EQUAL EOF ARROW TYPEARROW
 
 
 
@@ -32,125 +33,189 @@
 %%
 
 fsafe:
-  | list_of_type_dec list_of_var_dec list_of_expr { Fsafe( $1,$2,$3)}
+  | list_of_type_dec list_of_var_dec list_of_expr
+      { Fsafe($1, $2, $3) }
 
  list_of_type_dec :
-  | type_dec { $1 }
-  | type_dec list_of_type_dec { $1 @ $2 }
+  | type_dec
+      { $1 }
+  | type_dec list_of_type_dec
+      { $1 @ $2 }
 
 typevar:
-  | typeident {$1}
-  | MAJIDENT { Tvar($1) }
-  | MAJIDENT LBRACKET list_typevar RBRACKET { Tparam($1,$3) }
-  | MAJIDENT TYPEARROW typevar { Tarrow($1,$3) }
+  | typeident
+      { $1 }
+  | MAJIDENT
+      { Tvar($1) }
+  | MAJIDENT LBRACKET list_typevar RBRACKET
+      { Tparam($1, $3) }
+  | MAJIDENT TYPEARROW typevar
+      { Tarrow($1, $3) }
 
 typeident:
-  | IDENT { Tvar($1) }
-  | IDENT LBRACKET list_typevar RBRACKET { Tparam($1,$3) }
-  | IDENT TYPEARROW typevar { Tarrow($1,$3) }
+  | IDENT
+      { Tvar($1) }
+  | IDENT LBRACKET list_typevar RBRACKET
+      { Tparam($1, $3) }
+  | IDENT TYPEARROW typevar
+      { Tarrow($1, $3) }
 
 type_def:
-  | IDENT EQUAL list_of_cons  { DefDatatype ($1, [], $3) }
+  | IDENT EQUAL list_of_cons
+      { DefDatatype ($1, [], $3) }
   | IDENT LBRACKET list_typevar RBRACKET EQUAL list_of_cons
       { DefDatatype ($1, $3, $6) }
 
 type_dec:
-  | TYPE type_def { [$2] }
-  | TYPE type_def type_decs_and { $2 :: $3 }
+  | TYPE type_def
+      { [$2] }
+  | TYPE type_def type_decs_and
+      { $2 :: $3 }
 
 type_decs_and:
-  | AND type_def { [$2] }
-  | AND type_def type_decs_and {$2 :: $3}
+  | AND type_def
+      { [$2] }
+  | AND type_def type_decs_and
+      { $2::$3 }
 
 
 list_of_var_dec:
-  |      var_dec { [$1]}
-  | var_dec list_of_var_dec { $1::$2}
+  | var_dec
+      { [$1] }
+  | var_dec list_of_var_dec
+      { $1::$2 }
 
 var_dec:
-  | DEF list_of_params EQUAL envloc list_of_expr { DefVar ($2, $4,$5)}
-  | DEF list_of_params EQUAL list_of_expr  { DefVar ($2,EnvLocal([]),$4)}
-  | DEF fun_def { $2 }
+  | DEF list_of_params EQUAL envloc list_of_expr
+      { DefVar($2, $4, $5) }
+  | DEF list_of_params EQUAL list_of_expr
+      { DefVar($2, EnvLocal([]), $4) }
+  | DEF fun_def
+      { $2 }
   
 envloc:
-  |  LET LPAREN list_of_assigns RPAREN { EnvLocal ($3)}
+  |  LET LPAREN list_of_assigns RPAREN
+      { EnvLocal($3) }
 
 fun_def:
-  | IDENT LPAREN RPAREN COLON typevar EQUAL expr { DefFunction ($1,[],$5,$7 ) }
-  | IDENT LPAREN list_of_params RPAREN COLON typevar EQUAL expr { DefFunction ($1,$3,$6,$8) } 
+  | IDENT LPAREN RPAREN COLON typevar EQUAL expr
+      { DefFunction ($1, [], $5, $7 ) }
+  | IDENT LPAREN list_of_params RPAREN COLON typevar EQUAL expr
+      { DefFunction ($1, $3, $6, $8) } 
 
 list_of_cons:
-  | typecons { [$1] }
-  | typecons PIPE list_of_cons { $1 :: $3 }
+  | typecons
+      { [$1] }
+  | typecons PIPE list_of_cons
+      { $1::$3 }
 
 typecons:
-  | MAJIDENT { DefCon ($1, []) }
-  | MAJIDENT LPAREN list_of_params RPAREN { DefCon ($1, $3) }
+  | MAJIDENT
+      { DefCon($1, []) }
+  | MAJIDENT LPAREN list_of_params RPAREN
+      { DefCon($1, $3) }
 
 
 list_of_params:
-  | IDENT COLON typevar { [Param($1,$3)] } 
-  | IDENT COLON typevar COMMA list_of_params { Param($1,$3) :: $5 } 
+  | IDENT COLON typevar
+      { [Param($1, $3)] } 
+  | IDENT COLON typevar COMMA list_of_params
+      { Param($1, $3) :: $5 } 
 
 
 list_typevar:
-  | typevar { [$1] }
-  | typevar COMMA list_typevar { $1 :: $3 }
+  | typevar
+      { [$1] }
+  | typevar COMMA list_typevar
+      { $1::$3 }
 
 list_of_expr:
-  | expr { [$1] }
-  | expr COMMA list_of_expr { $1 :: $3 }
+  | expr
+      { [$1] }
+  | expr COMMA list_of_expr
+      { $1::$3 }
 
 expr:
-  | IDENT { Var($1) }
-  | constante { $1 }
-  | LET LPAREN list_of_assigns RPAREN LBRACE expr RBRACE { lets_of_list $3 $6 }
-  | CASE list_of_expr LBRACE motifs RBRACE { Case($2,$4) } 
-  | IDENT  LPAREN list_of_expr RPAREN { Call ($1,[],$3) }
-  | IDENT LBRACKET list_typevar RBRACKET LPAREN list_of_expr RPAREN { Call ($1,$3,$6) }
-  | FUN LBRACKET list_typevar RBRACKET LPAREN list_of_params RPAREN COLON typevar ARROW expr { Anon_fun ( $3,$6,$9,$11) } 
+  | IDENT
+      { Var($1) }
+  | constante
+      { $1 }
+  | LET LPAREN list_of_assigns RPAREN LBRACE expr RBRACE
+      { lets_of_list $3 $6 }
+  | CASE list_of_expr LBRACE motifs RBRACE
+      { Case($2, $4) } 
+  | IDENT  LPAREN list_of_expr RPAREN
+      { Call ($1, [], $3) }
+  | IDENT LBRACKET list_typevar RBRACKET LPAREN list_of_expr RPAREN
+      { Call ($1, $3, $6) }
+  | FUN LBRACKET list_typevar RBRACKET LPAREN list_of_params RPAREN
+      COLON typevar ARROW expr { Anon_fun($3, $6, $9, $11) } 
 
 list_of_assigns:
-  | IDENT COLON typevar EQUAL expr {[(Param($1,$3),$5)]}
-  | IDENT COLON typevar EQUAL expr list_of_assigns { (Param($1,$3),$5) :: $6 }
+  | IDENT COLON typevar EQUAL expr
+      { [(Param($1, $3),$5)] }
+  | IDENT COLON typevar EQUAL expr list_of_assigns
+      { (Param($1, $3), $5) :: $6 }
 
 constante:
-  | MAJIDENT LBRACKET list_typevar RBRACKET LPAREN list_of_expr RPAREN { Constante($1,$3,$6) }
-  | MAJIDENT LPAREN list_of_expr RPAREN { Constante($1,[],$3) }
-  | MAJIDENT { Constante($1,[],[])}
-  | MAJIDENT LBRACKET list_typevar RBRACKET { Constante($1,$3,[])}
-  | LBRACE list_of_couple RBRACE LBRACKET typevar TYPEARROW typevar RBRACKET { AppConstr ($2,$5,$7)}  
-  | LBRACE RBRACE LBRACKET typevar TYPEARROW typevar RBRACKET { AppConstr ([],$4,$6)} 
+  | MAJIDENT LBRACKET list_typevar RBRACKET LPAREN list_of_expr RPAREN
+      { Constante($1, $3, $6) }
+  | MAJIDENT LPAREN list_of_expr RPAREN
+      { Constante($1, [], $3) }
+  | MAJIDENT
+      { Constante($1, [], []) }
+  | MAJIDENT LBRACKET list_typevar RBRACKET
+      { Constante($1, $3, []) }
+  | LBRACE list_of_couple RBRACE LBRACKET typevar TYPEARROW typevar RBRACKET
+      { AppConstr($2, $5, $7) }
+  | LBRACE RBRACE LBRACKET typevar TYPEARROW typevar RBRACKET
+      { AppConstr([], $4, $6) }
 
  list_of_couple:
-  | LPAREN expr COMMA expr RPAREN { [AppCouple ($2,$4)]}
-  | LPAREN expr COMMA expr RPAREN COMMA list_of_couple { AppCouple ($2,$4) :: $7}
+  | LPAREN expr COMMA expr RPAREN
+      { [AppCouple($2, $4)] }
+  | LPAREN expr COMMA expr RPAREN COMMA list_of_couple
+      { AppCouple($2,$4) :: $7 }
 
 list_of_filter:
-  | filter { [$1] }
-  | filter COMMA list_of_filter { $1::$3 }
+  | filter
+      { [$1] }
+  | filter COMMA list_of_filter
+      { $1::$3 }
 
 filter:
-  |  IDENT COLON typevar { Var_filt(Param($1,$3)) } 
-  |  ANONVAR COLON typevar { AnonVar ($3) }
-  | constante_filter { $1 }
-  | app_filter { $1 }
+  | IDENT COLON typevar
+      { Var_filt(Param($1, $3)) }
+  | ANONVAR COLON typevar
+      { AnonVar($3) }
+  | constante_filter
+      { $1 }
+  | app_filter
+      { $1 }
 
 motifs:
-    | PIPE list_of_filter ARROW expr {[Filter($2,$4)] }
-    | PIPE list_of_filter ARROW expr motifs {Filter($2,$4) :: $5} 
-
+  | PIPE list_of_filter ARROW expr
+      { [Filter($2,$4)] }
+  | PIPE list_of_filter ARROW expr motifs
+      { Filter($2,$4) :: $5 } 
+      
 app_filter:
-    |LBRACE RBRACE LBRACKET typevar TYPEARROW typevar RBRACKET { AppVide($4,$6)}
-    |LBRACE couple COMMA IDENT COLON typevar RBRACE {AppFilter($2,Param($4,$6))}
+  | LBRACE RBRACE LBRACKET typevar TYPEARROW typevar RBRACKET
+      { AppVide($4,$6) }
+  | LBRACE couple COMMA IDENT COLON typevar RBRACE
+      {AppFilter($2, Param($4, $6)) }
 
 couple:
-    | LPAREN IDENT COLON typevar COMMA IDENT COLON typevar RPAREN { Couple(Param($2,$4),Param($6,$8))}
+  | LPAREN IDENT COLON typevar COMMA IDENT COLON typevar RPAREN
+      { Couple(Param($2, $4), Param($6, $8)) }
 constante_filter:
-  | MAJIDENT LBRACKET list_typevar RBRACKET LPAREN list_of_filter RPAREN { Constante_filt($1,$3,$6) }
-  | MAJIDENT LBRACKET list_typevar RBRACKET { Constante_filt($1,$3,[])}
-  | MAJIDENT LPAREN list_of_filter RPAREN { Constante_filt($1,[],$3) }
-  | MAJIDENT { Constante_filt($1,[],[])}
-
+  | MAJIDENT LBRACKET list_typevar RBRACKET LPAREN list_of_filter RPAREN
+      { Constante_filt($1, $3, $6) }
+  | MAJIDENT LBRACKET list_typevar RBRACKET
+      { Constante_filt($1, $3, []) }
+  | MAJIDENT LPAREN list_of_filter RPAREN
+      { Constante_filt($1, [], $3) }
+  | MAJIDENT
+      { Constante_filt($1, [], [])}
 
 %%
