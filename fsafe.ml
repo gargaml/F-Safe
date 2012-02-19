@@ -54,5 +54,5 @@ and
 type env_local = EnvLocal of (param * expression) list
 type var_definition =
   | DefVar of param list * env_local * expression list
-  | DefFunction of string * param list * ptyp * expression
+  | DefFunction of string * ptyp list * param list * ptyp * expression
 type fsafe = Fsafe of data_type_definition list * var_definition list * expression list 

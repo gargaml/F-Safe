@@ -96,14 +96,22 @@ var_dec:
       { DefVar($2, EnvLocal([]), $4) }
   | DEF fun_def
       { $2 }
-  
+
+  list_of_assigns:
+  | IDENT COLON typevar EQUAL expr
+      { [(Param($1, $3),$5)] }
+  | IDENT COLON typevar EQUAL expr list_of_assigns
+      { (Param($1, $3), $5) :: $6 }
+
 envloc:
   |  LET LPAREN list_of_assigns RPAREN
       { EnvLocal($3) }
 
 fun_def:
   | IDENT LPAREN list_of_params RPAREN COLON typevar EQUAL expr
-      { DefFunction ($1, $3, $6, $8) } 
+      { DefFunction ($1,[], $3, $6, $8) } 
+  | IDENT LBRACKET list_typevar RBRACKET LPAREN list_of_params RPAREN COLON typevar EQUAL expr
+      { DefFunction ($1, $3, $6, $9, $11) } 
 
 list_of_cons:
   | typecons
@@ -156,11 +164,7 @@ expr:
   | FUN LPAREN list_of_params RPAREN
       COLON typevar ARROW expr { Anon_fun([], $3, $6, $8) }
 
-list_of_assigns:
-  | IDENT COLON typevar EQUAL expr
-      { [(Param($1, $3),$5)] }
-  | IDENT COLON typevar EQUAL expr list_of_assigns
-      { (Param($1, $3), $5) :: $6 }
+
 
 constante:
   | MAJIDENT LBRACKET list_typevar RBRACKET LPAREN list_of_expr RPAREN
@@ -211,7 +215,7 @@ app_filter:
       {AppFilter($2, Param($4, $6)) }
 
 couple:
-  | LPAREN IDENT COLON typevar COMMA IDENT COLON typevar RPAREN
+  | LPAREN filter COLON typevar COMMA filter COLON typevar RPAREN
       { Couple(Param($2, $4), Param($6, $8)) }
 constante_filter:
   | MAJIDENT LBRACKET list_typevar RBRACKET LPAREN list_of_filter RPAREN

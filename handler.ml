@@ -23,7 +23,9 @@ open Termination
 let parse lexbuf =
   try
     Parser.fsafe Lexer.token lexbuf
-  with Parsing.Parse_error -> 
+   with   Parser.Error ->
+	Printf.fprintf stderr "At offset %d: syntax error.\n%!" (Lexing.lexeme_start lexbuf);Fsafe.Fsafe([],[],[])
+  (*with Parser.error -> 
    let curr = lexbuf.Lexing.lex_curr_p in
    let line = curr.Lexing.pos_lnum in
    let cnum = curr.Lexing.pos_cnum - curr.Lexing.pos_bol in
@@ -32,7 +34,7 @@ let parse lexbuf =
       "line is %d charnum is %d token is %s error here"
       line cnum tok in
    failwith err
-
+  *)
 (* handle : string -> () *)
 let handle filename =
   
