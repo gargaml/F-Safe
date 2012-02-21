@@ -22,8 +22,8 @@
 %token <string> IDENT
 %token <string> MAJIDENT
 
-%token LPAREN RPAREN LBRACKET RBRACKET LBRACE RBRACE
-%token COMMA COLON PIPE EQUAL EOF ARROW TYPEARROW
+%token LPAREN RPAREN LBRACKET RBRACKET LBRACE RBRACE 
+%token COMMA COLON PIPE EQUAL EOF ARROW TYPEARROW UNDEFINED
 
 
 
@@ -90,21 +90,21 @@ list_of_var_dec:
       { $1::$2 }
 
 var_dec:
-  | DEF list_of_params EQUAL envloc LBRACKET list_of_expr RBRACKET
+  | DEF list_of_params EQUAL envloc LBRACE list_of_expr RBRACE
       { DefVar($2, $4, $6) }
-  | DEF list_of_params EQUAL list_of_expr
-      { DefVar($2, EnvLocal([]), $4) }
   | DEF fun_def
       { $2 }
 
   list_of_assigns:
   | IDENT COLON typevar EQUAL expr
       { [(Param($1, $3),$5)] }
-  | IDENT COLON typevar EQUAL expr list_of_assigns
-      { (Param($1, $3), $5) :: $6 }
+  | IDENT COLON typevar EQUAL expr COMMA list_of_assigns
+      { (Param($1, $3), $5) :: $7 }
 
 envloc:
-  |  LET LPAREN list_of_assigns RPAREN
+  | 
+      { EnvLocal( []) }
+  |  LET LPAREN list_of_assigns RPAREN 
       { EnvLocal($3) }
 
 fun_def:
@@ -193,15 +193,20 @@ list_of_filter:
       { $1::$3 }
 
 filter:
-  | IDENT COLON typevar
-      { Var_filt(Param($1, $3)) }
-  | ANONVAR COLON typevar
-      { AnonVar($3) }
+  | filter_var 
+      { $1 }
   | constante_filter
       { $1 }
   | app_filter
       { $1 }
 
+filter_var:
+  | UNDEFINED
+      { Undefined }
+  | IDENT COLON typevar
+      { Var_filt($1, $3) }
+  | ANONVAR COLON typevar
+      { AnonVar($3) }
 motifs:
   | PIPE list_of_filter ARROW expr
       { [Filter($2,$4)] }
@@ -209,14 +214,14 @@ motifs:
       { Filter($2,$4) :: $5 } 
       
 app_filter:
-  | LBRACE RBRACE LBRACKET typevar RBRACKET
+  | LBRACE RBRACE LBRACKET typevar RBRACKET 
       { AppVide($4) }
-  | LBRACE couple COMMA IDENT COLON typevar RBRACE
+  | LBRACE couple_filer COMMA IDENT COLON typevar RBRACE
       {AppFilter($2, Param($4, $6)) }
 
-couple:
-  | LPAREN filter COLON typevar COMMA filter COLON typevar RPAREN
-      { Couple(Param($2, $4), Param($6, $8)) }
+couple_filer:
+  | LPAREN filter_var COMMA filter_var RPAREN
+      { Couple_filter($2,$4) }
 constante_filter:
   | MAJIDENT LBRACKET list_typevar RBRACKET LPAREN list_of_filter RPAREN
       { Constante_filt($1, $3, $6) }

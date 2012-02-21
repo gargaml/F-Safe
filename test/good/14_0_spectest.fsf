@@ -1,4 +1,4 @@
 def in_naive[T](e:T,s:Set[T]) : bool = case s {
 | {}[T->unit] => False
-| {(f:T,_:unit),s’:Set[T]} => if e=f then True else in_naive[T](e,s’)
+| {(f:T,_:unit),s':Set[T]} => case f { | e:T =>  True | _:T => in_naive[T](e,s')}
 }

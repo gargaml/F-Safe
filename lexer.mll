@@ -22,6 +22,8 @@ let case = "case"
 let anonfun = "fun"
 let def ="def"
 let tlet = "let"
+let undefined = "undefined"
+let letloc = "letloc"
 
 let typearrow = "->"
 let anonvar = "_"
@@ -53,6 +55,9 @@ rule token = parse
   | rbracket { RBRACKET }
   | lbrace { LBRACE }
   | rbrace { RBRACE }
+
+  | tlet { LET }
+  | undefined { UNDEFINED }
   | comma { COMMA }
   | colon { COLON }
   | arrow { ARROW }

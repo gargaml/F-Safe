@@ -27,15 +27,16 @@ type data_constructor_definition =  DefCon of data_constructor * param list
 type data_type_definition = 
   | DefDatatype of type_constructor * ptyp list
     * data_constructor_definition list
-type coupleparam = 
-Couple of param * param
-
-type motif = 
-  | Var_filt of param
+type couple_filter = 
+Couple_filter of motif * motif
+and
+ motif = 
+  | Undefined
+  | Var_filt of string * ptyp
   | AnonVar of ptyp
   | Constante_filt of string * ptyp list * motif list
   | AppVide of ptyp 
-  | AppFilter of coupleparam * param
+  | AppFilter of couple_filter * param
       
 type filter = Filter of motif list * expression
 and
@@ -51,7 +52,7 @@ and
   | Call of string * ptyp list * expression list
   | Anon_fun of ptyp list * param list * ptyp * expression
 
-type env_local = EnvLocal of (param * expression) list
+type env_local = EnvLocal of (param * expression) list 
 type var_definition =
   | DefVar of param list * env_local * expression list
   | DefFunction of string * ptyp list * param list * ptyp * expression

@@ -24,7 +24,7 @@ let parse lexbuf =
   try
     Parser.fsafe Lexer.token lexbuf
    with   Parser.Error ->
-	Printf.fprintf stderr "At offset %d: syntax error.\n%!" (Lexing.lexeme_start lexbuf);Fsafe.Fsafe([],[],[])
+	Printf.fprintf stderr "At offset %d: lexeme is %s  syntax error.\n%!" (Lexing.lexeme_start lexbuf) (Lexing.lexeme lexbuf);Fsafe.Fsafe([],[],[])
   (*with Parser.error -> 
    let curr = lexbuf.Lexing.lex_curr_p in
    let line = curr.Lexing.pos_lnum in
