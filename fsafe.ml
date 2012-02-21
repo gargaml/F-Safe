@@ -22,38 +22,38 @@ type ptyp =
 
 type param =  Param of string * ptyp
 
-type data_constructor_definition =  DefCon of data_constructor * param list 
+type data_constructor_definition =  DConstructor of data_constructor * param list 
     
 type data_type_definition = 
-  | DefDatatype of type_constructor * ptyp list
+  | DDatatype of type_constructor * ptyp list
     * data_constructor_definition list
-type couple_filter = 
-Couple_filter of motif * motif
+type couple_pattern = 
+PCouple of pattern * pattern
 and
- motif = 
-  | Undefined
-  | Var_filt of string * ptyp
-  | AnonVar of ptyp
-  | Constante_filt of string * ptyp list * motif list
-  | AppVide of ptyp 
-  | AppFilter of couple_filter * param
+  pattern = 
+  | PUndefined
+  | PVar of string * ptyp
+  | PAnonVar of ptyp
+  | PConstante of string * ptyp list * pattern list
+  | PVoidApplication of ptyp 
+  | PApplication of couple_pattern * param
       
-type filter = Filter of motif list * expression
+type filter = Filter of pattern list * expression
 and
   appcouple =
-    AppCouple of expression * expression
+    EApplicationCouple of expression * expression
 and
   expression = 
-  | Var of string
-  | Constante of string * ptyp list * expression list
-  | AppConstr of appcouple list * ptyp 
-  | Let of param * expression * expression
-  | Case of expression list * filter list
-  | Call of string * ptyp list * expression list
-  | Anon_fun of ptyp list * param list * ptyp * expression
+  | EVar of string
+  | EConstante of string * ptyp list * expression list
+  | EApplication of appcouple list * ptyp 
+  | ELet of param * expression * expression
+  | ECase of expression list * filter list
+  | ECall of string * ptyp list * expression list
+  | EAbstraction of ptyp list * param list * ptyp * expression
 
-type env_local = EnvLocal of (param * expression) list 
+type def_local = DLocal of (param * expression) list 
 type var_definition =
-  | DefVar of param list * env_local * expression list
-  | DefFunction of string * ptyp list * param list * ptyp * expression
+  | DVar of param list * def_local * expression list
+  | DFunction of string * ptyp list * param list * ptyp * expression
 type fsafe = Fsafe of data_type_definition list * var_definition list * expression list 
