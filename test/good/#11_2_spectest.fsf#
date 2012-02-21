@@ -1,0 +1,9 @@
+def add:nat->nat->nat = 
+{
+  fun(n:nat,m:nat):nat =>
+  case n {
+    | Zero => m
+    | Succ(p:nat) => Succ(add(p,m))
+}
+}
+
