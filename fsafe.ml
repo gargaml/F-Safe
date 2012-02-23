@@ -34,7 +34,7 @@ and
   | PUndefined
   | PVar of string * ptyp
   | PAnonVar of ptyp
-  | PConstante of string * ptyp list * pattern list
+  | PConstant of string * ptyp list * pattern list
   | PVoidApplication of ptyp 
   | PApplication of couple_pattern * param
       
@@ -45,7 +45,7 @@ and
 and
   expression = 
   | EVar of string
-  | EConstante of string * ptyp list * expression list
+  | EConstant of string * ptyp list * expression list
   | EApplication of appcouple list * ptyp 
   | ELet of param * expression * expression
   | ECase of expression list * filter list

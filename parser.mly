@@ -13,7 +13,7 @@
   let rec lets_of_list l expr =
     match l with
       | [] -> expr
-      | (x, a)::t -> Let(x, a, lets_of_list t expr)
+      | (x, a)::t -> ELet(x, a, lets_of_list t expr)
     
 %}
 
@@ -153,7 +153,7 @@ expr:
       { $1 }
   | LET LPAREN list_of_assigns RPAREN LBRACE expr RBRACE
       { lets_of_list $3 $6 }
-  | CASE list_of_expr LBRACE motifs RBRACE
+  | CASE list_of_expr LBRACE filter RBRACE
       { ECase($2, $4) } 
   | IDENT  LPAREN list_of_expr RPAREN
       { ECall ($1, [], $3) }
@@ -187,9 +187,9 @@ constante:
       { EApplicationCouple($2,$4) :: $7 }
 
 list_of_pattern:
-  | filter
+  | pattern
       { [$1] }
-  | filter COMMA list_of_filter
+  | pattern COMMA list_of_pattern
       { $1::$3 }
 
 pattern:
@@ -210,7 +210,7 @@ pattern_var:
 filter:
   | PIPE list_of_pattern ARROW expr
       { [Filter($2,$4)] }
-  | PIPE list_of_pattern ARROW expr motifs
+  | PIPE list_of_pattern ARROW expr filter
       { Filter($2,$4) :: $5 } 
       
 pattern_application:
@@ -227,9 +227,9 @@ pattern_constant:
       { PConstant($1, $3, $6) }
   | MAJIDENT LBRACKET list_typevar RBRACKET
       { PConstant($1, $3, []) }
-  | MAJIDENT LPAREN list_of_filter RPAREN
+  | MAJIDENT LPAREN list_of_pattern RPAREN
       { PConstant($1, [], $3) }
   | MAJIDENT
-      { PConstant($1, [], [])}
+      { PConstant($1, [], []) }
 
 %%

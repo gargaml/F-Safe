@@ -4,4 +4,3 @@ case n {
 | Succ(p:nat) => Succ(add(p,m))
 }
 }
-
