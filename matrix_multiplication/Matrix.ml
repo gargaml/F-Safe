@@ -3,7 +3,7 @@
 (* F-Safe                                                                    *)
 (*                                                                           *)
 (* File        : Matrix.ml                                                   *)
-(* Description : definition of matrice                                       *)
+(* Description : definition of matrix                                        *)
 (*                                                                           *)
 (*****************************************************************************)
 
@@ -21,5 +21,4 @@ type relation =
 (*   e j o                                *)
 (*                                        *)
 (* data = [a,f,k,b,g,l,c,h,m,d,i,n,e,j,o] *)
-type matrix_struct = { data : relation list ; nb_c : int ; nb_l : int }
-
+type matrix_of_relations = { data : relation list ; nb_c : int ; nb_l : int }

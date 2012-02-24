@@ -1,5 +1,5 @@
 COMPILATEUR = ocamlc
-ELEMENTS = Matrix Product_of_matrices Print_of_matrices test
+ELEMENTS = Matrix Product_of_matrices Print_of_matrices tests_for_matrices
 
 .DEFAULT : aide
 aide :

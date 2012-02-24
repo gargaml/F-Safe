@@ -40,11 +40,15 @@ let multiplication m1 m2 =
             (* we start by the end to get all in order.   *)
             for i = lim_i downto 0 do
               for j = lim_j downto 0 do
-                let add_mult = ref Unknown in (* Because Unknown is the neutral element for addition *)
+                let add_mult = ref Unknown in
+                  (* Because Unknown is the neutral element for addition *)
                   for k = 0 to lim_k do
                     let m1_index = (i * m1.nb_c) + k in
                       let m2_index = (k * m2.nb_c) + j in
-                        let add_res  = mult (List.nth m1.data m1_index, List.nth m2.data m2_index) in
+                        let add_res  = mult (
+                          List.nth m1.data m1_index,
+                          List.nth m2.data m2_index
+                        ) in
                           add_mult  := add (add_mult.contents,add_res) ;
                   done ;
                   matrix_product := !add_mult :: !matrix_product ;
@@ -54,51 +58,3 @@ let multiplication m1 m2 =
   else
     raise Exception_incompatible_dimensions
 ;;
-
-
-
-(*TEST MATRIX*)
-(*--------------------------------------------------------------------*)
-
-
-
-(*------TEST 1-------------------------------------------------------------*)
-
-(*let m1 = { data = [Inf; Inf; Inf;*)
-                   (*Inf; Inf; Inf;*)
-                   (*Inf; Inf; Inf] ; nb_c = 3; nb_l = 3 };;*)
-(*let m2 = { data = [Eq; Eq; Eq;*)
-                   (*Eq; Eq; Eq;*)
-                   (*Eq; Eq; Eq] ; nb_c = 3; nb_l = 3 };;*)
-(*let v =     multiplication m1 m2;;*)
-(*print_relation_list v;;*)
-
-(*------TEST 2-------------------------------------------------------------*)
-
-(*let m1 = { data = [Inf; Inf; Inf; Inf;*)
-                   (*Inf; Inf; Inf; Inf;*)
-                   (*Inf; Inf; Inf; Inf] ; nb_c = 4; nb_l = 3 };;*)
-(*let m2 = { data = [Eq; Eq; Eq;*)
-                   (*Eq; Eq; Eq;*)
-                   (*Eq; Eq; Eq;*)
-                   (*Eq; Eq; Eq ] ; nb_c = 3; nb_l = 4 };;*)
-(*let v =     multiplication m1 m2;;*)
-(*print_relation_list v;;*)
-
-(*------TEST 3-------------------------------------------------------------*)
-
-(*let m1 = { data = [Inf; Inf; Inf;*)
-                   (*Inf; Inf; Inf;*)
-                   (*Inf; Inf; Inf;*)
-                   (*Inf; Inf; Inf] ; nb_c = 3; nb_l = 4 };;*)
-(*let m2 = { data = [Eq; Eq; Eq; Eq;*)
-                   (*Eq; Eq; Eq; Eq;*)
-                   (*Eq; Eq; Eq; Eq ] ; nb_c = 4; nb_l = 3 };;*)
-(*let v =     multiplication m1 m2;;*)
-(*print_relation_list v;;*)
-
-
-(*--------------------------------------------------------------------*)
-
-
-
