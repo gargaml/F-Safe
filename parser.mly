@@ -9,12 +9,22 @@
 
 %{
   open Fsafe
-
+  open List
   let rec lets_of_list l expr =
     match l with
       | [] -> expr
       | (x, a)::t -> ELet(x, a, lets_of_list t expr)
     
+  let pattern_of_list patterns expr =
+    (map (fun x -> Filter(x,expr)) patterns)
+  let rec lambdas_of_list params lambdas funtype expr =
+    match lambdas with
+      | [] -> expr
+      | lambda :: t -> EAbstraction(params, lambda, funtype, lambdas_of_list params t funtype expr)
+
+	
+  let  build_annotation paramstype expressions = 
+      (map (function x -> EAnnotation(x)) paramstype) @ expressions
 %}
 
 %token TYPE AND DEF CASE FUN LET ANONVAR
@@ -159,21 +169,23 @@ expr:
   | IDENT LBRACKET list_typevar RBRACKET LPAREN list_of_expr RPAREN
       { ECall ($1, $3, $6) }
   | FUN LBRACKET list_typevar RBRACKET LPAREN list_of_params RPAREN
-      COLON typevar ARROW expr { EAbstraction($3, $6, $9, $11) }
+      COLON typevar ARROW expr 
+      { (lambdas_of_list $3 $6 $9 $11) }
   | FUN LPAREN list_of_params RPAREN
-      COLON typevar ARROW expr { EAbstraction([], $3, $6, $8) }
+      COLON typevar ARROW expr
+      { (lambdas_of_list [] $3 $6 $8) }
 
 
 
 constante:
   | MAJIDENT LBRACKET list_typevar RBRACKET LPAREN list_of_expr RPAREN
-      { EConstant($1, $3, $6) }
+      { EConstant($1, build_annotation $3 $6) }
   | MAJIDENT LPAREN list_of_expr RPAREN
-      { EConstant($1, [], $3) }
+      { EConstant($1, $3) }
   | MAJIDENT
-      { EConstant($1, [], []) }
+      { EConstant($1,[]) }
   | MAJIDENT LBRACKET list_typevar RBRACKET
-      { EConstant($1, $3, []) }
+      { EConstant($1, build_annotation $3 []) }
   | LBRACE list_of_couple RBRACE LBRACKET typevar RBRACKET
       { EApplication($2, $5) }
   | LBRACE RBRACE LBRACKET typevar RBRACKET
@@ -208,9 +220,9 @@ pattern_var:
       { PAnonVar($3) }
 filter:
   | PIPE list_of_pattern ARROW expr
-      { [Filter($2,$4)] }
+      { pattern_of_list $2 $4 }
   | PIPE list_of_pattern ARROW expr filter
-      { Filter($2,$4) :: $5 } 
+      { (pattern_of_list $2 $4) @ $5 } 
       
 pattern_application:
   | LBRACE RBRACE LBRACKET typevar RBRACKET 

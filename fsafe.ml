@@ -7,12 +7,6 @@
 (*                                                                           *)
 (*****************************************************************************)
 
-type type_var = string
-
-type data_constructor = string
-
-type type_constructor = string 
-
 
 type ptyp =
   | Tvar of string
@@ -22,10 +16,10 @@ type ptyp =
 
 type param =  Param of string * ptyp
 
-type data_constructor_definition =  DConstructor of data_constructor * param list 
+type data_constructor_definition =  DConstructor of string * param list 
     
 type data_type_definition = 
-  | DDatatype of type_constructor * ptyp list
+  | DDatatype of string * ptyp list
     * data_constructor_definition list
 type couple_pattern = 
 PCouple of pattern * pattern
@@ -38,19 +32,20 @@ and
   | PVoidApplication of ptyp 
   | PApplication of couple_pattern * param
       
-type filter = Filter of pattern list * expression
+type filter = Filter of pattern * expression
 and
   appcouple =
     EApplicationCouple of expression * expression
 and
   expression = 
   | EVar of string
-  | EConstant of string * ptyp list * expression list
+  | EConstant of string * expression list
   | EApplication of appcouple list * ptyp 
   | ELet of param * expression * expression
   | ECase of expression list * filter list
   | ECall of string * ptyp list * expression list
-  | EAbstraction of ptyp list * param list * ptyp * expression
+  | EAbstraction of ptyp list * param * ptyp * expression
+  | EAnnotation of ptyp
 
 type def_local = DLocal of (param * expression) list 
 type var_definition =

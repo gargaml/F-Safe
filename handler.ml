@@ -49,6 +49,11 @@ let handle filename =
     let ast = parse lexbuf in
     if !verbose then printf "done\n";
 
+    (* well-formed type *)
+    if !verbose then printf "Type checking... ";
+    Well_formed_type.check ast;
+    if !verbose then printf "done\n";
+
     (* type checking *)
     if !verbose then printf "Type checking... ";
     ignore (typecheck ast);
