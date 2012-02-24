@@ -44,7 +44,7 @@ and
   | ELet of param * expression * expression
   | ECase of expression list * filter list
   | ECall of string * ptyp list * expression list
-  | EAbstraction of ptyp list * param list * ptyp * expression
+  | EAbstraction of ptyp list * param * ptyp * expression
   | EAnnotation of ptyp
 
 type def_local = DLocal of (param * expression) list 
