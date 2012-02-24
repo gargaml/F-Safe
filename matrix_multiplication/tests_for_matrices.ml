@@ -21,65 +21,81 @@ type expectation = OK | KO of exn * string ;;
 
 let _MAX_TESTS = 10 ;;
 
-let m1 = { data = [ Inf ;
-                    Eq ;
-                    Unknown ] ;
+let m1 = { data = [|
+             [| Inf |] ;
+             [| Eq |] ;
+             [| Unknown |]
+           |] ;
            nb_l = 3 ;
            nb_c = 1 
          }
 ;;
 
-let m2 = { data = [ Inf ; Eq ; Unknown ] ;
+let m2 = { data = [|
+             [| Inf ; Eq ; Unknown |]
+           |] ;
            nb_l = 1 ;
            nb_c = 3 
          }
 ;;
 
-let m3 = { data = [Inf; Inf; Inf;
-                   Inf; Inf; Inf;
-                   Inf; Inf; Inf] ;
+let m3 = { data = [|
+             [| Inf; Inf; Inf |] ;
+             [| Inf; Inf; Inf |] ;
+             [| Inf; Inf; Inf |]
+           |] ;
            nb_l = 3 ;
            nb_c = 3 ;
          }
 ;;
 
-let m4 = { data = [Eq; Eq; Eq;
-                   Eq; Eq; Eq;
-                   Eq; Eq; Eq] ;
+let m4 = { data = [|
+             [| Eq; Eq; Eq |] ;
+             [| Eq; Eq; Eq |] ;
+             [| Eq; Eq; Eq |]
+           |] ;
            nb_l = 3 ;
            nb_c = 3 ;
          }
 ;;
 
-let m5 = { data = [Inf; Inf; Inf; Inf;
-                   Inf; Inf; Inf; Inf;
-                   Inf; Inf; Inf; Inf] ;
+let m5 = { data = [|
+             [| Inf; Inf; Inf; Inf |] ;
+             [| Inf; Inf; Inf; Inf |] ;
+             [| Inf; Inf; Inf; Inf |]
+           |] ;
            nb_l = 3 ;
            nb_c = 4 ;
          }
 ;;
 
-let m6 = { data = [Eq; Eq; Eq;
-                   Eq; Eq; Eq;
-                   Eq; Eq; Eq;
-                   Eq; Eq; Eq ] ;
+let m6 = { data = [|
+             [| Eq; Eq; Eq |] ;
+             [| Eq; Eq; Eq |] ;
+             [| Eq; Eq; Eq |] ;
+             [| Eq; Eq; Eq |]
+           |] ;
            nb_l = 4 ;
            nb_c = 3 ;
          }
 ;;
 
-let m7 = { data = [Inf; Inf; Inf;
-                   Inf; Inf; Inf;
-                   Inf; Inf; Inf;
-                   Inf; Inf; Inf] ;
+let m7 = { data = [|
+             [| Inf; Inf; Inf |] ;
+             [| Inf; Inf; Inf |] ;
+             [| Inf; Inf; Inf |] ;
+             [| Inf; Inf; Inf |]
+            |] ;
             nb_l = 4 ;
             nb_c = 3 ;
          }
 ;;
 
-let m8 = { data = [Eq; Eq; Eq; Eq;
-                   Eq; Eq; Eq; Eq;
-                   Eq; Eq; Eq; Eq ] ;
+let m8 = { data = [|
+             [| Eq; Eq; Eq; Eq |] ;
+             [| Eq; Eq; Eq; Eq |] ;
+             [| Eq; Eq; Eq; Eq |]
+           |] ;
            nb_l = 3 ;
            nb_c = 4 ;
          }

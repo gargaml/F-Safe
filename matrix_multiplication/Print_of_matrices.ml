@@ -19,14 +19,10 @@ let print_relation x =
 ;;
 
 let print_matrix m =
-  let rec ligne data = match data with
-      [] -> ()
-    | _ ->
-    let rec colonne data len = match len with
-        0 -> printf "\n" ; ligne data ;
-      | _ -> match data with
-          hd :: tl -> print_relation hd ; colonne tl (len - 1) ;
-        | _ -> ()
-    in colonne data m.nb_c
-  in ligne m.data 
+  for i = 0 to m.nb_l - 1 do
+    for j = 0 to m.nb_c - 1 do
+      print_relation m.data.(i).(j) ;
+    done ;
+    printf "\n" ;
+  done
 ;;

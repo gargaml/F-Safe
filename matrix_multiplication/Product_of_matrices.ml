@@ -35,24 +35,19 @@ let multiplication m1 m2 =
     let lim_i = (m1.nb_l - 1) in
       let lim_j = (m2.nb_c - 1) in
         let lim_k = (m1.nb_c - 1) in
-          let matrix_product = ref [] in 
-            (* Since a list must be populate by the head, *)
-            (* we start by the end to get all in order.   *)
-            for i = lim_i downto 0 do
-              for j = lim_j downto 0 do
-                let add_mult = ref Unknown in
-                  (* Because Unknown is the neutral element for addition *)
-                  for k = 0 to lim_k do
-                    let m1_index = (i * m1.nb_c) + k in
-                      let m2_index = (k * m2.nb_c) + j in
-                        let add_res  = mult (
-                          List.nth m1.data m1_index,
-                          List.nth m2.data m2_index
-                        ) in
-                          add_mult  := add (add_mult.contents,add_res) ;
-                  done ;
-                  matrix_product := !add_mult :: !matrix_product ;
-              done ;
+          let matrix_product = ref (Array.make_matrix m1.nb_l m2.nb_c Unknown) in 
+            for i = 0 to lim_i do
+              let line = ref (Array.make m2.nb_c Unknown) in 
+                for j = 0 to lim_j do
+                  let add_mult = ref Unknown in
+                    (* Because Unknown is the neutral element for addition *)
+                    for k = 0 to lim_k do
+                      let add_res  = mult (m1.data.(i).(k), m2.data.(k).(j)) in
+                        add_mult  := add (add_mult.contents,add_res) ;
+                    done ;
+                    Array.set !line j !add_mult ;
+                done ;
+                Array.set !matrix_product i !line ;
             done ;
             { data = !matrix_product ; nb_l = m1.nb_l ; nb_c = m2.nb_c } ;
   else

@@ -21,4 +21,4 @@ type relation =
 (*   e j o                                *)
 (*                                        *)
 (* data = [a,f,k,b,g,l,c,h,m,d,i,n,e,j,o] *)
-type matrix_of_relations = { data : relation list ; nb_c : int ; nb_l : int }
+type matrix_of_relations = { data : relation array array ; nb_c : int ; nb_l : int }
