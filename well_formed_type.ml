@@ -107,23 +107,20 @@ let rec print_strings = function
   | [] -> ()
   | s :: rest -> print_string s; print_newline() ; print_strings rest
 
-let rec check_data_type_definition_list trie = function
+(* let rec check_data_type_definition_list trie = function
     [] -> trie
   | datatype :: rest -> begin match datatype with
 	DefDataType (typecons, _, _) ->
 	  check_data_type_definition_list (enter trie typecons) rest
     end
+*)
 
 let rec check_list_of_declaration trie = function
     [] -> ()
   | decl :: rest -> 
-      begin match decl with
-	  DeclDataType l -> 
-	    check_list_of_declaration 
-	      (check_data_type_definition_list trie l) rest
-	| _ -> check_list_of_declaration trie rest
-      end
+      match decl with
+	| DDatatype (s,_,_) -> 
+	    check_list_of_declaration (enter trie s) rest
 	
 let check = function
-    Fsafe l -> check_list_of_declarations empty l
-
+    Fsafe (l,_,_) -> check_list_of_declaration empty l
