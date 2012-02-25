@@ -115,12 +115,50 @@ let rec print_strings = function
     end
 *)
 
-let rec check_list_of_declaration trie = function
-    [] -> ()
-  | decl :: rest -> 
-      match decl with
-	| DDatatype (s,_,_) -> 
-	    check_list_of_declaration (enter trie s) rest
-	
+let rec check_list_of_param cons trie = function
+  | [] -> ()
+  | Param (s,_) :: rest ->
+    try
+      check_list_of_param cons (enter trie s) rest
+    with Duplicate s ->
+      print_string ("Error: duplicate label " ^ s ^ " in constructor " ^ cons ^ "\n");
+      exit(1)
+
+let rec check_list_of_ptyp trie = function
+  | [] -> ()
+  | Tvar s :: rest | Tarrow (s, _) :: rest | Tparam (s, _) :: rest ->
+    try
+      check_list_of_ptyp (enter trie s) rest
+    with Duplicate s ->
+      print_string ("Error: duplicate parameter " ^ s ^ "\n");
+      exit(1)
+
+let rec check_list_of_constructor constrie = function
+  | [] -> constrie
+  | DConstructor (s,paramlist) :: rest ->
+    (check_list_of_param s empty paramlist);
+    begin 
+      try
+	check_list_of_constructor (enter constrie s) rest
+      with Duplicate s ->
+	print_string ("Error: duplicate constructor " ^ s ^ "\n");
+	exit(1)
+    end
+
+let rec check_list_of_definition typeidenttrie constrie = function
+  | [] -> ()
+  | DDatatype (s,ptyplist,conslist) :: rest -> 
+    check_list_of_ptyp empty ptyplist;
+    begin
+      try
+	check_list_of_definition 
+	  (enter typeidenttrie s) 
+	  (check_list_of_constructor constrie conslist)
+	  rest
+      with Duplicate s ->
+	print_string ("Error: duplicate type identifier " ^ s ^ "\n");
+	exit(1)
+    end
+ 
 let check = function
-    Fsafe (l,_,_) -> check_list_of_declaration empty l
+    Fsafe (l,_,_) -> check_list_of_definition empty empty l
