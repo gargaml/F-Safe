@@ -107,32 +107,25 @@ let rec print_strings = function
   | [] -> ()
   | s :: rest -> print_string s; print_newline() ; print_strings rest
 
-(* let rec check_data_type_definition_list trie = function
-    [] -> trie
-  | datatype :: rest -> begin match datatype with
-	DefDataType (typecons, _, _) ->
-	  check_data_type_definition_list (enter trie typecons) rest
-    end
-*)
-
+(* check_list_of_param : string -> trie -> param -> unit *)
 let rec check_list_of_param cons trie = function
   | [] -> ()
   | Param (s,_) :: rest ->
     try
       check_list_of_param cons (enter trie s) rest
     with Duplicate s ->
-      print_string ("Error: duplicate label " ^ s ^ " in constructor " ^ cons ^ "\n");
-      exit(1)
+      raise (failwith ("Duplicate label " ^ s ^ " in constructor " ^ cons))
 
+(* check_list_of_ptyp : trie -> ptyp -> unit *)
 let rec check_list_of_ptyp trie = function
   | [] -> ()
   | Tvar s :: rest | Tarrow (s, _) :: rest | Tparam (s, _) :: rest ->
     try
       check_list_of_ptyp (enter trie s) rest
     with Duplicate s ->
-      print_string ("Error: duplicate parameter " ^ s ^ "\n");
-      exit(1)
+      raise (failwith ("Duplicate parameter " ^ s))
 
+(* check_list_of_contructor : trie -> data_contructor_definition -> trie *)
 let rec check_list_of_constructor constrie = function
   | [] -> constrie
   | DConstructor (s,paramlist) :: rest ->
@@ -141,10 +134,10 @@ let rec check_list_of_constructor constrie = function
       try
 	check_list_of_constructor (enter constrie s) rest
       with Duplicate s ->
-	print_string ("Error: duplicate constructor " ^ s ^ "\n");
-	exit(1)
+	raise (failwith ("Duplicate constructor " ^ s))
     end
 
+(* check_list_of_definition : trie -> trie -> data_type_definition -> unit *)
 let rec check_list_of_definition typeidenttrie constrie = function
   | [] -> ()
   | DDatatype (s,ptyplist,conslist) :: rest -> 
@@ -156,9 +149,9 @@ let rec check_list_of_definition typeidenttrie constrie = function
 	  (check_list_of_constructor constrie conslist)
 	  rest
       with Duplicate s ->
-	print_string ("Error: duplicate type identifier " ^ s ^ "\n");
-	exit(1)
+	raise (failwith ("Duplicate type identifier " ^ s))
     end
  
+(* check : fsafe -> unit *)
 let check = function
     Fsafe (l,_,_) -> check_list_of_definition empty empty l
