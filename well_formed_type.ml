@@ -102,6 +102,18 @@ let make_lex = List.fold_left (fun lex -> fun c -> enter lex c ) empty
 (* strings_of_trie : trie -> string list *)
 let strings_of_trie t = List.map string_of_chars (contents t)
 
+(* ptyp list -> string *)
+let rec string_of_ptyplist = function
+  | [] -> ""
+  | ptyp :: [] -> string_of_ptyp ptyp
+  | ptyp :: rest -> (string_of_ptyp ptyp) ^ ", " ^ (string_of_ptyplist rest)
+
+(* ptyp -> string *)
+and string_of_ptyp = function
+  | Tvar s -> s
+  | Tarrow (s, ptyp) -> s ^ " -> " ^ (string_of_ptyp ptyp)
+  | Tparam (s, ptyplist) -> s ^ "[" ^ (string_of_ptyplist ptyplist) ^ "]"
+
 (* print_strings : string list -> unit *)
 let rec print_strings = function
   | [] -> ()
@@ -116,14 +128,20 @@ let rec check_list_of_param cons trie = function
     with Duplicate s ->
       raise (failwith ("Duplicate label " ^ s ^ " in constructor " ^ cons))
 
-(* check_list_of_ptyp : trie -> ptyp -> unit *)
-let rec check_list_of_ptyp trie = function
+(* ptyp -> ptyp list -> bool *)
+let rec is_in ptyp = function
+  | [] -> false
+  | ptyp2 :: rest ->
+    if ptyp2 = ptyp then true else is_in ptyp rest
+
+(* check_list_of_ptyp : ptyp list -> unit *)
+let rec check_list_of_ptyp = function
   | [] -> ()
-  | Tvar s :: rest | Tarrow (s, _) :: rest | Tparam (s, _) :: rest ->
-    try
-      check_list_of_ptyp (enter trie s) rest
-    with Duplicate s ->
-      raise (failwith ("Duplicate parameter " ^ s))
+  | ptyp :: rest ->
+    if is_in ptyp rest then
+      raise (failwith ("Duplicate parameter " ^ (string_of_ptyp ptyp)))
+    else
+      check_list_of_ptyp rest
 
 (* check_list_of_contructor : trie -> data_contructor_definition -> trie *)
 let rec check_list_of_constructor constrie = function
@@ -141,7 +159,7 @@ let rec check_list_of_constructor constrie = function
 let rec check_list_of_definition typeidenttrie constrie = function
   | [] -> ()
   | DDatatype (s,ptyplist,conslist) :: rest -> 
-    check_list_of_ptyp empty ptyplist;
+    check_list_of_ptyp ptyplist;
     begin
       try
 	check_list_of_definition 
