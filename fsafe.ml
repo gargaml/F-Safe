@@ -25,10 +25,8 @@ type couple_pattern =
 PCouple of pattern * pattern
 and
   pattern = 
-  | PUndefined
   | PVar of string * ptyp
-  | PAnonVar of ptyp
-  | PConstant of string * ptyp list * pattern list
+  | PCons of string * ptyp list * pattern list
   | PVoidApplication of ptyp 
   | PApplication of couple_pattern * param
       
