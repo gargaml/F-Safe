@@ -50,7 +50,7 @@ let handle filename =
     if !verbose then printf "done\n";
 
     (* well-formed type *)
-    if !verbose then printf "Type checking... ";
+    if !verbose then printf "Well-formed type checking... ";
     Well_formed_type.check ast;
     if !verbose then printf "done\n";
 

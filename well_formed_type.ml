@@ -102,25 +102,74 @@ let make_lex = List.fold_left (fun lex -> fun c -> enter lex c ) empty
 (* strings_of_trie : trie -> string list *)
 let strings_of_trie t = List.map string_of_chars (contents t)
 
+(* ptyp list -> string *)
+let rec string_of_ptyplist = function
+  | [] -> ""
+  | ptyp :: [] -> string_of_ptyp ptyp
+  | ptyp :: rest -> (string_of_ptyp ptyp) ^ ", " ^ (string_of_ptyplist rest)
+
+(* ptyp -> string *)
+and string_of_ptyp = function
+  | Tvar s -> s
+  | Tarrow (s, ptyp) -> s ^ " -> " ^ (string_of_ptyp ptyp)
+  | Tparam (s, ptyplist) -> s ^ "[" ^ (string_of_ptyplist ptyplist) ^ "]"
+
 (* print_strings : string list -> unit *)
 let rec print_strings = function
   | [] -> ()
   | s :: rest -> print_string s; print_newline() ; print_strings rest
 
-(* let rec check_data_type_definition_list trie = function
-    [] -> trie
-  | datatype :: rest -> begin match datatype with
-	DefDataType (typecons, _, _) ->
-	  check_data_type_definition_list (enter trie typecons) rest
-    end
-*)
+(* check_list_of_param : string -> trie -> param -> unit *)
+let rec check_list_of_param cons trie = function
+  | [] -> ()
+  | Param (s,_) :: rest ->
+    try
+      check_list_of_param cons (enter trie s) rest
+    with Duplicate s ->
+      raise (failwith ("Duplicate label " ^ s ^ " in constructor " ^ cons))
 
-let rec check_list_of_declaration trie = function
-    [] -> ()
-  | decl :: rest -> 
-      match decl with
-	| DDatatype (s,_,_) -> 
-	    check_list_of_declaration (enter trie s) rest
-	
+(* ptyp -> ptyp list -> bool *)
+let rec is_in ptyp = function
+  | [] -> false
+  | ptyp2 :: rest ->
+    if ptyp2 = ptyp then true else is_in ptyp rest
+
+(* check_list_of_ptyp : ptyp list -> unit *)
+let rec check_list_of_ptyp = function
+  | [] -> ()
+  | ptyp :: rest ->
+    if is_in ptyp rest then
+      raise (failwith ("Duplicate parameter " ^ (string_of_ptyp ptyp)))
+    else
+      check_list_of_ptyp rest
+
+(* check_list_of_contructor : trie -> data_contructor_definition -> trie *)
+let rec check_list_of_constructor constrie = function
+  | [] -> constrie
+  | DConstructor (s,paramlist) :: rest ->
+    (check_list_of_param s empty paramlist);
+    begin 
+      try
+	check_list_of_constructor (enter constrie s) rest
+      with Duplicate s ->
+	raise (failwith ("Duplicate constructor " ^ s))
+    end
+
+(* check_list_of_definition : trie -> trie -> data_type_definition -> unit *)
+let rec check_list_of_definition typeidenttrie constrie = function
+  | [] -> ()
+  | DDatatype (s,ptyplist,conslist) :: rest -> 
+    check_list_of_ptyp ptyplist;
+    begin
+      try
+	check_list_of_definition 
+	  (enter typeidenttrie s) 
+	  (check_list_of_constructor constrie conslist)
+	  rest
+      with Duplicate s ->
+	raise (failwith ("Duplicate type identifier " ^ s))
+    end
+ 
+(* check : fsafe -> unit *)
 let check = function
-    Fsafe (l,_,_) -> check_list_of_declaration empty l
+    Fsafe (l,_,_) -> check_list_of_definition empty empty l

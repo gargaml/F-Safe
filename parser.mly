@@ -213,11 +213,11 @@ pattern:
 
 pattern_var:
   | UNDEFINED
-      { PUndefined }
+      { PVar("undefined", Tvar("Undefined")) }
   | IDENT COLON typevar
       { PVar($1, $3) }
   | ANONVAR COLON typevar
-      { PAnonVar($3) }
+      { PVar("_",$3) }
 filter:
   | PIPE list_of_pattern ARROW expr
       { pattern_of_list $2 $4 }
@@ -235,12 +235,12 @@ couple_pattern:
       { PCouple($2,$4) }
 pattern_constant:
   | MAJIDENT LBRACKET list_typevar RBRACKET LPAREN list_of_pattern RPAREN
-      { PConstant($1, $3, $6) }
+      { PCons($1, $3, $6) }
   | MAJIDENT LBRACKET list_typevar RBRACKET
-      { PConstant($1, $3, []) }
+      { PCons($1, $3, []) }
   | MAJIDENT LPAREN list_of_pattern RPAREN
-      { PConstant($1, [], $3) }
+      { PCons($1, [], $3) }
   | MAJIDENT
-      { PConstant($1, [], []) }
+      { PCons($1, [], []) }
 
 %%
