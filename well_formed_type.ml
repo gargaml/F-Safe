@@ -11,6 +11,12 @@ open Fsafe
 
 exception Duplicate of string
 
+module SMap = Map.Make(String)
+
+type tconsApp = TConsApp of string * ptyp list
+
+type tscheme = Scheme of ptyp list * param list * tconsApp 
+
 type trie = Trie of ( bool * arcs )
 and arcs = ( char * trie ) list
 
@@ -173,3 +179,22 @@ let rec check_list_of_definition typeidenttrie constrie = function
 (* check : fsafe -> unit *)
 let check = function
     Fsafe (l,_,_) -> check_list_of_definition empty empty l
+
+
+
+
+let create_tscheme_map ast =
+  match ast with
+      Fsafe([],_,_) -> SMap.empty
+    | Fsafe(typeList,_,_) ->  
+      let rec createScheme tlist map =
+	match tlist with
+          | [] -> map
+          | (DDatatype (typ, ptypListe, constructorliste)) :: l ->	    
+            let rec createConsListe ll mapp = 
+	      match ll  with
+		  [] -> createScheme l mapp
+		| DConstructor (const, paramListe) :: lll -> SMap.add const (Scheme(ptypListe,paramListe,TConsApp(typ,ptypListe))) (createConsListe lll mapp) 
+	    in  createConsListe constructorliste map
+      in createScheme typeList SMap.empty
+      

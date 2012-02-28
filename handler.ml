@@ -16,6 +16,7 @@ open Printf
 open Interpret
 open Typechecker
 open Termination
+open Well_formed_type
 
 
 
@@ -53,6 +54,12 @@ let handle filename =
     if !verbose then printf "Well-formed type checking... ";
     Well_formed_type.check ast;
     if !verbose then printf "done\n";
+
+    (* well-formed type *)
+    if !verbose then printf "Creation of TScheme map... ";
+    ignore (Well_formed_type.create_tscheme_map ast);
+    let m = Well_formed_type.create_tscheme_map ast in
+    if !verbose then printf "done, unumber of elements %d\n" (SMap.cardinal m);
 
     (* type checking *)
     if !verbose then printf "Type checking... ";
