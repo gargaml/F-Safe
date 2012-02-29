@@ -12,6 +12,9 @@ type ptyp =
   | Tvar of string
   | Tarrow of string *  ptyp
   | Tparam of string *  ptyp list
+  | TvarPolymorphic of string
+  | TarrowPolymorphic of string *  ptyp
+  | TparamPolymorphic of string *  ptyp list
 
 
 type param =  Param of string * ptyp

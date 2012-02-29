@@ -60,11 +60,11 @@ typevar:
   | typeident
       { $1 }
   | MAJIDENT
-      { Tvar($1) }
+      { TvarPolymorphic($1) }
   | MAJIDENT LBRACKET list_typevar RBRACKET
-      { Tparam($1, $3) }
+      { TparamPolymorphic($1, $3) }
   | MAJIDENT TYPEARROW typevar
-      { Tarrow($1, $3) }
+      { TarrowPolymorphic($1, $3) }
 
 typeident:
   | IDENT
