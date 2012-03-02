@@ -11,11 +11,10 @@ open Fsafe
 
 exception Duplicate of string
 
-module SMap = Map.Make(String)
-
 type tconsApp = TConsApp of string * ptyp list
-
 type tscheme = Scheme of ptyp list * param list * tconsApp 
+
+module SMap = Map.Make(String)
 
 type trie = Trie of ( bool * arcs )
 and arcs = ( char * trie ) list
@@ -116,9 +115,9 @@ let rec string_of_ptyplist = function
 
 (* ptyp -> string *)
 and string_of_ptyp = function
-  | Tvar s -> s
-  | Tarrow (s, ptyp) -> s ^ " -> " ^ (string_of_ptyp ptyp)
-  | Tparam (s, ptyplist) -> s ^ "[" ^ (string_of_ptyplist ptyplist) ^ "]"
+  | Tvar s | TvarPolymorphic s-> s
+  | Tarrow (s, ptyp) | TarrowPolymorphic (s, ptyp) -> s ^ " -> " ^ (string_of_ptyp ptyp)
+  | Tparam (s, ptyplist) | TparamPolymorphic (s, ptyplist) -> s ^ "[" ^ (string_of_ptyplist ptyplist) ^ "]"
 
 (* print_strings : string list -> unit *)
 let rec print_strings = function
@@ -180,9 +179,13 @@ let rec check_list_of_definition typeidenttrie constrie = function
 let check = function
     Fsafe (l,_,_) -> check_list_of_definition empty empty l
 
+<<<<<<< HEAD
 
 
 (* check : fsafe -> SMap *)
+=======
+(* TODO *)
+>>>>>>> c5300a42ae58a025ee78997676cfc1e8560860d2
 let create_tscheme_map ast =
   match ast with
       Fsafe([],_,_) -> SMap.empty
@@ -195,10 +198,19 @@ let create_tscheme_map ast =
 	      match ll  with
 		  [] -> createScheme l mapp
 		| DConstructor (const, paramListe) :: lll -> 
+<<<<<<< HEAD
 		  SMap.add 
 		    const 
 		    (Scheme(ptypListe,paramListe,TConsApp(typ,ptypListe)))
 		    (createConsListe lll mapp)
+=======
+		    SMap.add 
+		      const 
+		      (Scheme(ptypListe,
+			      paramListe,
+			      TConsApp(typ,ptypListe))) 
+		      (createConsListe lll mapp) 
+>>>>>>> c5300a42ae58a025ee78997676cfc1e8560860d2
 	    in  createConsListe constructorliste map
       in createScheme typeList SMap.empty
       
