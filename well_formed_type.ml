@@ -182,7 +182,7 @@ let check = function
 
 
 
-
+(* check : fsafe -> SMap *)
 let create_tscheme_map ast =
   match ast with
       Fsafe([],_,_) -> SMap.empty
@@ -194,7 +194,11 @@ let create_tscheme_map ast =
             let rec createConsListe ll mapp = 
 	      match ll  with
 		  [] -> createScheme l mapp
-		| DConstructor (const, paramListe) :: lll -> SMap.add const (Scheme(ptypListe,paramListe,TConsApp(typ,ptypListe))) (createConsListe lll mapp) 
+		| DConstructor (const, paramListe) :: lll -> 
+		  SMap.add 
+		    const 
+		    (Scheme(ptypListe,paramListe,TConsApp(typ,ptypListe)))
+		    (createConsListe lll mapp)
 	    in  createConsListe constructorliste map
       in createScheme typeList SMap.empty
       
