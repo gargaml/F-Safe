@@ -9,9 +9,7 @@
 
 open Printf
 
-open Matrix
-
-open Product_of_matrices
+open Matrix_of_relation
 
 open Print_of_matrices
 

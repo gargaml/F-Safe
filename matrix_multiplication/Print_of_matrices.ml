@@ -9,7 +9,7 @@
 
 open Printf
 
-open Matrix
+open Matrix_of_relation
 
 let print_relation x = 
     match x with

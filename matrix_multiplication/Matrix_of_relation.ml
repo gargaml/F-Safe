@@ -2,14 +2,17 @@
 (*                                                                           *)
 (* F-Safe                                                                    *)
 (*                                                                           *)
-(* File        : Product_of_matrices.ml                                      *)
-(* Description : multiplication of matrices functionality.                   *)
+(* File        : Matrix_of_relation.ml                                       *)
+(* Description : definition of matrix                                        *)
 (*                                                                           *)
 (*****************************************************************************)
 
-open Printf
+type relation =
+    Inf
+  | Eq
+  | Unknown
 
-open Matrix
+type matrix_of_relations = { mutable data : relation array array ; nb_c : int ; nb_l : int }
 
 exception Exception_incompatible_dimensions ;;
 
