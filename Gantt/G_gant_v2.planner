@@ -1,0 +1,116 @@
+<?xml version="1.0"?>
+<project name="" company="" manager="" phase="" project-start="20120210T000000Z" mrproject-version="2" calendar="1">
+  <properties/>
+  <phases/>
+  <calendars>
+    <day-types>
+      <day-type id="0" name="Working" description="A default working day"/>
+      <day-type id="1" name="Nonworking" description="A default non working day"/>
+      <day-type id="2" name="Use base" description="Use day from base calendar"/>
+    </day-types>
+    <calendar id="1" name="Default">
+      <default-week mon="0" tue="0" wed="0" thu="0" fri="0" sat="1" sun="1"/>
+      <overridden-day-types>
+        <overridden-day-type id="0">
+          <interval start="0800" end="1200"/>
+          <interval start="1300" end="1700"/>
+        </overridden-day-type>
+      </overridden-day-types>
+      <days/>
+    </calendar>
+  </calendars>
+  <tasks>
+    <task id="1" name="Grammaire" note="" work="72000" start="20120210T000000Z" end="20120213T100000Z" work-start="20120210T080000Z" percent-complete="100" priority="0" type="normal" scheduling="fixed-work">
+      <constraint type="must-start-on" time="20120210T000000Z"/>
+    </task>
+    <task id="2" name="D&#xE9;claration de types ; parser" note="" work="72000" start="20120213T100000Z" end="20120214T120000Z" work-start="20120213T100000Z" percent-complete="100" priority="0" type="normal" scheduling="fixed-work">
+      <predecessors>
+        <predecessor id="1" predecessor-id="1" type="FS"/>
+      </predecessors>
+    </task>
+    <task id="3" name="D&#xE9;claration expressions ; parser" note="" work="72000" start="20120213T100000Z" end="20120214T120000Z" work-start="20120213T100000Z" percent-complete="100" priority="0" type="normal" scheduling="fixed-work">
+      <predecessors>
+        <predecessor id="1" predecessor-id="1" type="FS"/>
+      </predecessors>
+    </task>
+    <task id="4" name="Tests sur types, expressions" note="" work="72000" start="20120214T120000Z" end="20120216T170000Z" work-start="20120214T120000Z" percent-complete="100" priority="0" type="normal" scheduling="fixed-work">
+      <predecessors>
+        <predecessor id="1" predecessor-id="3" type="FS"/>
+        <predecessor id="1" predecessor-id="2" type="FS"/>
+      </predecessors>
+    </task>
+    <task id="5" name="Interpr&#xE8;te, expressions" note="" work="144000" start="20120214T120000Z" end="20120216T170000Z" work-start="20120214T120000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work">
+      <predecessors>
+        <predecessor id="1" predecessor-id="3" type="FS"/>
+        <predecessor id="1" predecessor-id="2" type="FS"/>
+      </predecessors>
+    </task>
+    <task id="6" name="multimatrice de matrices" note="" work="144000" start="20120210T000000Z" end="20120214T120000Z" work-start="20120210T080000Z" percent-complete="100" priority="0" type="normal" scheduling="fixed-work">
+      <constraint type="must-start-on" time="20120210T000000Z"/>
+    </task>
+    <task id="7" name="V&#xE9;rification de la bonne forme de l&#x2019;AST" note="" work="72000" start="20120214T120000Z" end="20120215T090000Z" work-start="20120214T120000Z" percent-complete="80" priority="0" type="normal" scheduling="fixed-work">
+      <predecessors>
+        <predecessor id="1" predecessor-id="3" type="FS"/>
+        <predecessor id="1" predecessor-id="2" type="FS"/>
+      </predecessors>
+    </task>
+    <task id="8" name="Pretty printer" note="" work="72000" start="20120310T000000Z" end="20120313T100000Z" work-start="20120312T080000Z" percent-complete="50" priority="0" type="normal" scheduling="fixed-work">
+      <constraint type="must-start-on" time="20120310T000000Z"/>
+    </task>
+    <task id="9" name="Initialisation d&#x2019;environnement de types" note="" work="72000" start="20120214T120000Z" end="20120215T150000Z" work-start="20120214T120000Z" percent-complete="100" priority="0" type="normal" scheduling="fixed-work">
+      <predecessors>
+        <predecessor id="1" predecessor-id="3" type="FS"/>
+        <predecessor id="1" predecessor-id="2" type="FS"/>
+      </predecessors>
+    </task>
+    <task id="10" name="D&#xE9;finition de structure de donnes de graphes" note="" work="78300" start="20120310T000000Z" end="20120312T161500Z" work-start="20120312T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work">
+      <constraint type="must-start-on" time="20120310T000000Z"/>
+    </task>
+    <task id="11" name="Construction de(s) Graphe(s) " note="" work="72000" start="20120312T161500Z" end="20120313T145500Z" work-start="20120312T161500Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work">
+      <predecessors>
+        <predecessor id="1" predecessor-id="9" type="FS"/>
+        <predecessor id="1" predecessor-id="10" type="FS"/>
+      </predecessors>
+    </task>
+  </tasks>
+  <resource-groups/>
+  <resources>
+    <resource id="1" name="Vincent" short-name="" type="1" units="0" email="" note="" std-rate="0"/>
+    <resource id="2" name="Aurelien" short-name="" type="1" units="0" email="" note="" std-rate="0"/>
+    <resource id="3" name="Adel" short-name="" type="1" units="0" email="" note="" std-rate="0"/>
+    <resource id="4" name="J&#xE9;r&#xE9;mie" short-name="" type="1" units="0" email="" note="" std-rate="0"/>
+    <resource id="5" name="Joseph" short-name="" type="1" units="0" email="" note="" std-rate="0"/>
+    <resource id="6" name="Arnaud" short-name="" type="1" units="0" email="" note="" std-rate="0"/>
+    <resource id="7" name="Thierry" short-name="" type="1" units="0" email="" note="" std-rate="0"/>
+    <resource id="8" name="Ugo" short-name="" type="1" units="0" email="" note="" std-rate="0"/>
+    <resource id="9" name="Yoann" short-name="" type="1" units="0" email="" note="" std-rate="0"/>
+    <resource id="10" name="Sergey" short-name="" type="1" units="0" email="" note="" std-rate="0"/>
+  </resources>
+  <allocations>
+    <allocation task-id="10" resource-id="1" units="100"/>
+    <allocation task-id="7" resource-id="1" units="100"/>
+    <allocation task-id="3" resource-id="1" units="100"/>
+    <allocation task-id="11" resource-id="2" units="100"/>
+    <allocation task-id="8" resource-id="2" units="100"/>
+    <allocation task-id="1" resource-id="2" units="100"/>
+    <allocation task-id="11" resource-id="3" units="100"/>
+    <allocation task-id="9" resource-id="3" units="100"/>
+    <allocation task-id="7" resource-id="3" units="100"/>
+    <allocation task-id="3" resource-id="3" units="100"/>
+    <allocation task-id="5" resource-id="4" units="100"/>
+    <allocation task-id="10" resource-id="5" units="100"/>
+    <allocation task-id="7" resource-id="5" units="100"/>
+    <allocation task-id="2" resource-id="5" units="100"/>
+    <allocation task-id="5" resource-id="6" units="100"/>
+    <allocation task-id="6" resource-id="7" units="100"/>
+    <allocation task-id="4" resource-id="7" units="100"/>
+    <allocation task-id="8" resource-id="8" units="100"/>
+    <allocation task-id="1" resource-id="8" units="100"/>
+    <allocation task-id="10" resource-id="9" units="100"/>
+    <allocation task-id="7" resource-id="9" units="100"/>
+    <allocation task-id="2" resource-id="9" units="100"/>
+    <allocation task-id="11" resource-id="10" units="100"/>
+    <allocation task-id="9" resource-id="10" units="100"/>
+    <allocation task-id="6" resource-id="10" units="100"/>
+  </allocations>
+</project>
