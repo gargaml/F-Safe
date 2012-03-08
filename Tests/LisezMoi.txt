@@ -1,8 +1,0 @@
-# LisezMoi.txt
-# v1.0 2012-02-12 Th. Paulin
-# Licence Creative Commons : Attribution - Pas d'utilisation commerciale - Partage à l'identique 3.0 non transposé
-# (cf. http://creativecommons.org/licenses/by-nc-sa/3.0/)
-
-Pour compiler un fichier « .dot » en fichier « .png »,
-il faut utiliser la commande suivante :
-	dot nom_fichier.dot -Tpng -o nom_fichier.png
