@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<project name="" company="" manager="" phase="" project-start="20120210T000000Z" mrproject-version="2" calendar="1">
+<project name="F-Safe" company="F-Safe Team" manager="" phase="" project-start="20120210T000000Z" mrproject-version="2" calendar="1">
   <properties/>
   <phases/>
   <calendars>
@@ -63,15 +63,16 @@
         <predecessor id="1" predecessor-id="2" type="FS"/>
       </predecessors>
     </task>
-    <task id="10" name="D&#xE9;finition de structure de donnes de graphes" note="" work="78300" start="20120310T000000Z" end="20120312T161500Z" work-start="20120312T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work">
+    <task id="10" name="D&#xE9;finition de structure de donnes de graphes" note="" work="86400" start="20120310T000000Z" end="20120312T170000Z" work-start="20120312T080000Z" percent-complete="80" priority="0" type="normal" scheduling="fixed-work">
       <constraint type="must-start-on" time="20120310T000000Z"/>
     </task>
-    <task id="11" name="Construction de(s) Graphe(s) " note="" work="72000" start="20120312T161500Z" end="20120313T145500Z" work-start="20120312T161500Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work">
+    <task id="11" name="Construction de(s) Graphe(s) " note="" work="144000" start="20120312T170000Z" end="20120314T142000Z" work-start="20120313T080000Z" percent-complete="30" priority="0" type="normal" scheduling="fixed-work">
       <predecessors>
         <predecessor id="1" predecessor-id="9" type="FS"/>
         <predecessor id="1" predecessor-id="10" type="FS"/>
       </predecessors>
     </task>
+    <task id="12" name="Algorithme de terminaison / Impl&#xE9;mentation" note="" work="28800" start="20120210T000000Z" end="20120210T090820Z" work-start="20120210T080000Z" percent-complete="0" priority="0" type="normal" scheduling="fixed-work"/>
   </tasks>
   <resource-groups/>
   <resources>
@@ -87,17 +88,22 @@
     <resource id="10" name="Sergey" short-name="" type="1" units="0" email="" note="" std-rate="0"/>
   </resources>
   <allocations>
+    <allocation task-id="12" resource-id="1" units="100"/>
     <allocation task-id="10" resource-id="1" units="100"/>
     <allocation task-id="7" resource-id="1" units="100"/>
     <allocation task-id="3" resource-id="1" units="100"/>
+    <allocation task-id="12" resource-id="2" units="100"/>
     <allocation task-id="11" resource-id="2" units="100"/>
     <allocation task-id="8" resource-id="2" units="100"/>
     <allocation task-id="1" resource-id="2" units="100"/>
+    <allocation task-id="12" resource-id="3" units="100"/>
     <allocation task-id="11" resource-id="3" units="100"/>
     <allocation task-id="9" resource-id="3" units="100"/>
     <allocation task-id="7" resource-id="3" units="100"/>
     <allocation task-id="3" resource-id="3" units="100"/>
+    <allocation task-id="12" resource-id="4" units="100"/>
     <allocation task-id="5" resource-id="4" units="100"/>
+    <allocation task-id="12" resource-id="5" units="100"/>
     <allocation task-id="10" resource-id="5" units="100"/>
     <allocation task-id="7" resource-id="5" units="100"/>
     <allocation task-id="2" resource-id="5" units="100"/>
@@ -106,9 +112,11 @@
     <allocation task-id="4" resource-id="7" units="100"/>
     <allocation task-id="8" resource-id="8" units="100"/>
     <allocation task-id="1" resource-id="8" units="100"/>
+    <allocation task-id="12" resource-id="9" units="100"/>
     <allocation task-id="10" resource-id="9" units="100"/>
     <allocation task-id="7" resource-id="9" units="100"/>
     <allocation task-id="2" resource-id="9" units="100"/>
+    <allocation task-id="12" resource-id="10" units="100"/>
     <allocation task-id="11" resource-id="10" units="100"/>
     <allocation task-id="9" resource-id="10" units="100"/>
     <allocation task-id="6" resource-id="10" units="100"/>
