@@ -83,7 +83,21 @@ annotation:
   | annotation TYPEARROW annotation
       { AArrow ($1, $3) }
 
+type_:
+  | MAJIDENT
+      { Tvar $1 }
+  | IDENT
+      { Tparam ($1, []) }
+  | IDENT LBRACKET types_ RBRACKET
+      { Tparam ($1, []) }
 
+types_:
+  |
+      { [] }
+  | type_
+      { [ $1 ] }
+  | type_ COMMA types_
+      { $1 :: $3 }
 
 annotations:
   |
@@ -102,7 +116,7 @@ annotated_parameter:
       { APar ($1, $3) }
 
 annotated_component:
-  | IDENT COLON annotation
+  | IDENT COLON type_
       { ACom ($1, $3) }
 
 annotated_variables:
@@ -124,7 +138,7 @@ annotated_components:
       { [ $1 ] }
   | annotated_component COMMA annotated_components
       { $1 :: $3 }
-      
+
 assignments:
   |
       { [] }

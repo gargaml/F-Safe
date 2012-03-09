@@ -11,7 +11,7 @@ open Fsafe
 
 exception Duplicate of string
 
-type tscheme = Scheme of variable list * annotated_parameter list * ptyp 
+type tscheme = Scheme of variable list * annotated_component list * ptyp 
 
 module SMap = Map.Make(String)
 
@@ -103,33 +103,6 @@ let string_of_chars l =
 (* make_lex : string list -> trie *)
 let make_lex = List.fold_left (fun lex -> fun c -> enter lex c ) empty
 
-(* strings_of_trie : trie -> string list *)
-let strings_of_trie t = List.map string_of_chars (contents t)
-
-(* ptyp list -> string *)
-let rec string_of_ptyplist = function
-  | [] -> ""
-  | ptyp :: [] -> string_of_ptyp ptyp
-  | ptyp :: rest -> (string_of_ptyp ptyp) ^ ", " ^ (string_of_ptyplist rest)
-
-and string_of_atyplist = function
-  | [] -> ""
-  | atyp :: [] -> string_of_atyp atyp
-  | atyp :: rest -> (string_of_atyp atyp) ^ ", " ^ (string_of_atyplist rest)
-
-(* ptyp -> string *)
-and string_of_ptyp = function
-  | Tvar s -> s
-  | Tarrow (t1, t2) -> (string_of_ptyp t1)  ^ " -> " ^ (string_of_ptyp t2)
-  | Tparam (s, ts) ->
-    s ^ "[" ^ (string_of_atyplist (List.map (fun (APar (_, t)) -> t) ts)) ^ "]"
-
-and string_of_atyp = function
-  | Var s -> s
-  | AArrow (t1, t2) -> (string_of_atyp t1) ^ " -> " ^ (string_of_atyp t2)
-  | AParam (s, ts) ->
-    s ^ "[" ^ string_of_atyplist ts
-
 (* print_strings : string list -> unit *)
 let rec print_strings = function
   | [] -> ()
@@ -138,7 +111,7 @@ let rec print_strings = function
 (* check_list_of_param : string -> trie -> param -> unit *)
 let rec check_list_of_param cons trie = function
   | [] -> ()
-  | APar (s, _) :: rest ->
+  | ACom (s, _) :: rest ->
     try
       check_list_of_param cons (enter trie s) rest
     with Duplicate s ->
@@ -155,7 +128,7 @@ let rec check_list_of_ptyp = function
   | [] -> ()
   | ptyp :: rest ->
     if is_in ptyp rest then
-      raise (failwith ("Duplicate parameter " ^ (string_of_ptyp ptyp)))
+      raise (failwith ("Duplicate parameter "))
     else
       check_list_of_ptyp rest
 
