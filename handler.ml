@@ -11,7 +11,7 @@
 (*                                                                           *)
 (*****************************************************************************)
 
-
+open Config
 open Printf
 open Interpret
 open Typechecker
