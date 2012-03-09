@@ -115,8 +115,10 @@ let rec string_of_ptyplist = function
 (* ptyp -> string *)
 and string_of_ptyp = function
   | Tvar s | TvarPolymorphic s-> s
-  | Tarrow (s, ptyp) | TarrowPolymorphic (s, ptyp) -> s ^ " -> " ^ (string_of_ptyp ptyp)
-  | Tparam (s, ptyplist) | TparamPolymorphic (s, ptyplist) -> s ^ "[" ^ (string_of_ptyplist ptyplist) ^ "]"
+  | Tarrow (s, ptyp) | TarrowPolymorphic (s, ptyp) -> 
+    s ^ " -> " ^ (string_of_ptyp ptyp)
+  | Tparam (s, ptyplist) | TparamPolymorphic (s, ptyplist) -> 
+    s ^ "[" ^ (string_of_ptyplist ptyplist) ^ "]"
 
 (* print_strings : string list -> unit *)
 let rec print_strings = function
