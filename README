@@ -1,0 +1,45 @@
+New fresh repository.
+
+--------------------------------------------------------------------
+                        History:
+--------------------------------------------------------------------
+12/08/2011:
+First, a branch for parsing.
+
+
+
+--------------------------------------------------------------------
+                Make options
+--------------------------------------------------------------------
+make fsafe      build fsafe project for linux
+make fswin.exe  build fsafe project for windows
+make check      run tests
+make clean      remove binaries and obj files of project.
+
+
+
+
+
+
+
+--------------------------------------------------------------------
+                        FAQ
+--------------------------------------------------------------------
+                        Questions:
+                        1.1 how to run compile procedure on win32 platform ?
+
+--------------------------------------------------------------------
+1.1 how to run compile procedure on win32 platform ?
+--------------------------------------------------------------------
+answer  : 
+0) you must have installed MASM, FlexDLL and binaries must be in path.
+1) install some project which contain 'make' (mingw for exemple)
+2) you must have installed Visual Studio and vcvarsall.bat file must be in path(default path is ~ C:\Program Files\MVS10\VC). 
+3) Then, before compilation, run this:
+vcvarsall.bat
+
+4) run make
+mingw32-make clean
+mingw32-make fswin.exe
+
+--------------------------------------------------------------------

@@ -1,0 +1,1 @@
+type bad6 = Bad6(n:nat,n:bool)

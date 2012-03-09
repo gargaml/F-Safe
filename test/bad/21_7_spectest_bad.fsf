@@ -1,0 +1,2 @@
+type bad7 = Bad7(n:bad7)
+

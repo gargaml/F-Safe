@@ -1,0 +1,1 @@
+type bad1 = Bad1 and bad1 = Bad2

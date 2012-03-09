@@ -1,0 +1,1 @@
+type ntree[T] = Node(e:T,f:list[ntree[T]])

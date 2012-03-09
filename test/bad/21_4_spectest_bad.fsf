@@ -1,0 +1,1 @@
+type bad5 = Bad5 | Bad5(n:nat)

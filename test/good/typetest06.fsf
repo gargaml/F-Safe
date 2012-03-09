@@ -1,0 +1,1 @@
+type tree[A,B,C] = Empty | Node(n:nat,f:float)
