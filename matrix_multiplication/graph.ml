@@ -29,24 +29,25 @@ let rec outparamlist x =
 	  
 (*Fsafe.fsafe -> Callgraph.callgraph*)
 let build_callgraph prog =
-  let getgraph graph_map ast =
   match prog with 
       Fsafe(_,defs,exps) -> 
-List.map
-	match exps with
-	    [] -> Graph.empty
-	  | ECall  (fname,_,exps) :: l1 -> 
-	    match defs with
-	      |DFunction (fname,_,callingparms,_,exp) :: l2->
-		let inparams = inparamlist callingparams in 
-                
-		match exp with  
-		  | ECall (fname_calledf,_,exps) -> 	      
-		    let outparams = outparamlist exps in 
-		    Graph.add fname (calledf,
-				     (inparams, outparams,
-				      matrix_of_relation)) graph_map
-                  | _ -> 
-in getgraph Graph.empty prog
-		      
-		  
+	let getgraph graph_map exp =
+	  match exp with
+	    | ECall  (fname,_,exps) -> 
+	      let checkdef graph_mapp def= 
+		match def with
+		  |DFunction (fname,_,callingparms,_,exp) ->
+		    let inparams = inparamlist callingparams in
+		    match exp with  
+		      | ECall (fname_calledf,_,exps) -> 	      
+			let outparams = outparamlist exps in 
+			Graph.add fname (calledf,
+					 (inparams, outparams,
+					  matrix_of_relation)) 
+			  graph_mapp
+                      | _ -> 
+	      in List.fold checkdef graph_map defs
+	in List.fold  getgraph Graph.empty exps
+	
+	
+	
