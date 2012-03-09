@@ -1,19 +1,6 @@
 /*****************************************************************************/
-/*     This file is part of FSafe.                                           */
 /*                                                                           */
-/*     FSafe is free software: you can redistribute it and/or modify         */
-/*     it under the terms of the GNU General Public License as published by  */
-/*     the Free Software Foundation, either version 3 of the License, or     */
-/*     (at your option) any later version.                                   */
-/*                                                                           */
-/*     FSafe is distributed in the hope that it will be useful,              */
-/*     but WITHOUT ANY WARRANTY; without even the implied warranty of        */
-/*     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         */
-/*     GNU General Public License for more details.                          */
-/*                                                                           */
-/*     You should have received a copy of the GNU General Public License     */
-/*     along with FSafe.  If not, see <http://www.gnu.org/licenses/>.        */
-/*                                                                           */
+/* F-Safe                                                                    */
 /*                                                                           */
 /* File        : parser.mly                                                  */
 /* Description : fsafe parser                                                */
@@ -23,21 +10,20 @@
 %{
   open Fsafe
   open List
+
   let rec lets_of_list l expr =
     match l with
       | [] -> expr
       | (x, a)::t -> ELet(x, a, lets_of_list t expr)
-    
+	
   let pattern_of_list patterns expr =
     (map (fun x -> Filter(x,expr)) patterns)
+
   let rec lambdas_of_list params lambdas funtype expr =
     match lambdas with
       | [] -> expr
-      | lambda :: t -> EAbstraction(params, lambda, funtype, lambdas_of_list params t funtype expr)
-
-	
-  let  build_annotation paramstype expressions = 
-      (map (function x -> EAnnotation(x)) paramstype) @ expressions
+      | lambda :: t ->
+	ELambda (params, lambda, funtype, lambdas_of_list params t funtype expr)
 %}
 
 %token TYPE AND DEF CASE FUN LET ANONVAR
@@ -48,7 +34,7 @@
 %token LPAREN RPAREN LBRACKET RBRACKET LBRACE RBRACE 
 %token COMMA COLON PIPE EQUAL EOF ARROW TYPEARROW UNDEFINED
 
-
+%right TYPEARROW
 
 %start fsafe
 %type <Fsafe.fsafe> fsafe
@@ -56,42 +42,102 @@
 %%
 
 fsafe:
-  | list_of_type_dec list_of_var_dec program EOF
-      { Fsafe($1, $2, $3) }
+  | list_of_type_dec global_defs program EOF
+      { { types = $1; globals = $2; entry = $3 } }
+
 program :
   |
-      {[]}
-  | list_of_expr
-      {$1}
+      { [] }
+  | exprs
+      { $1 }
+
+idents:
+  |
+      { [] }
+  | IDENT
+      { [ $1 ] }
+  | IDENT COMMA idents
+      { $1 :: $3 }
+
+majidents:
+  |
+      { [] }
+  | MAJIDENT
+      { [ $1 ] }
+  | MAJIDENT COMMA majidents
+      { $1 :: $3 }
+
 list_of_type_dec :
   | 
       { [] }
   | type_dec list_of_type_dec
       { $1 @ $2 }
 
-typevar:
-  | typeident
-      { $1 }
+annotation:
   | MAJIDENT
-      { TvarPolymorphic($1) }
-  | MAJIDENT LBRACKET list_typevar RBRACKET
-      { TparamPolymorphic($1, $3) }
-  | MAJIDENT TYPEARROW typevar
-      { TarrowPolymorphic($1, $3) }
-
-typeident:
+      { Var $1 }
   | IDENT
-      { Tvar($1) }
-  | IDENT LBRACKET list_typevar RBRACKET
-      { Tparam($1, $3) }
-  | IDENT TYPEARROW typevar
-      { Tarrow($1, $3) }
+      { AParam ($1, []) }
+  | IDENT LBRACKET idents RBRACKET
+      { AParam ($1, List.map (fun x -> AParam (x, [])) $3) }
+  | annotation TYPEARROW annotation
+      { AArrow ($1, $3) }
+
+
+
+annotations:
+  |
+      { [] }
+  | annotation
+      { [ $1 ] }
+  | annotation COMMA annotations
+      { $1 :: $3 }
+
+annotated_variable:
+  | IDENT COLON annotation
+      { AVar ($1, $3) }
+
+annotated_parameter:
+  | IDENT COLON annotation
+      { APar ($1, $3) }
+
+annotated_component:
+  | IDENT COLON annotation
+      { ACom ($1, $3) }
+
+annotated_variables:
+  | annotated_variable
+      { [ $1 ] }
+  | annotated_variable COMMA annotated_variables
+      { $1 :: $3 }
+
+annotated_parameters:
+  | annotated_parameter
+      { [ $1 ] }
+  | annotated_parameter COMMA annotated_parameters
+      { $1 :: $3 }
+
+annotated_components:
+  |
+      { [] }
+  | annotated_component
+      { [ $1 ] }
+  | annotated_component COMMA annotated_components
+      { $1 :: $3 }
+      
+assignments:
+  |
+      { [] }
+  | annotated_variable EQUAL expr 
+      { [ ($1, $3) ] }
+  | annotated_variable EQUAL expr COMMA assignments
+      { ($1, $3) :: $5 }
 
 type_def:
   | IDENT EQUAL list_of_cons
-      { DDatatype ($1, [], $3) }
-  | IDENT LBRACKET list_typevar RBRACKET EQUAL list_of_cons
-      { DDatatype ($1, $3, $6) }
+      { DTypeDef ($1, [], $3) }
+  | IDENT LBRACKET majidents RBRACKET EQUAL list_of_cons
+      { DTypeDef ($1, $3, $6) }
 
 type_dec:
   | TYPE type_def
@@ -105,36 +151,22 @@ type_decs_and:
   | AND type_def type_decs_and
       { $2::$3 }
 
-
-list_of_var_dec:
+global_defs:
   | 
       { [] }
-  | var_dec list_of_var_dec
+  | global_def global_defs
       { $1::$2 }
 
-var_dec:
-  | DEF list_of_params EQUAL locals LBRACE list_of_expr RBRACE
-      { DVar($2, $4, $6) }
-  | DEF fun_def
-      { $2 }
-
-  list_of_assigns:
-  | IDENT COLON typevar EQUAL expr
-      { [(Param($1, $3),$5)] }
-  | IDENT COLON typevar EQUAL expr COMMA list_of_assigns
-      { (Param($1, $3), $5) :: $7 }
-
-locals:
-  | 
-      { DLocal( []) }
-  |  LET LPAREN list_of_assigns RPAREN 
-      { DLocal($3) }
-
-fun_def:
-  | IDENT LPAREN list_of_params RPAREN COLON typevar EQUAL expr
-      { DFunction ($1,[], $3, $6, $8) } 
-  | IDENT LBRACKET list_typevar RBRACKET LPAREN list_of_params RPAREN COLON typevar EQUAL expr
-      { DFunction ($1, $3, $6, $9, $11) } 
+global_def:
+  | DEF annotated_variable EQUAL expr
+      { DVar($2, $4) }
+  | DEF IDENT LPAREN annotated_parameters RPAREN COLON annotation EQUAL expr
+      { DFun ($2, [], $4, $7, $9) }
+  | DEF annotated_variables EQUAL LET LPAREN assignments RPAREN LBRACE idents RBRACE
+      { DVars ($2, DLocal $6, $9) }
+  | DEF IDENT LBRACKET idents RBRACKET LPAREN annotated_parameters RPAREN
+    COLON annotation EQUAL expr
+      { DFun ($2, $4, $7, $10, $12) }
 
 list_of_cons:
   | typecons
@@ -145,27 +177,13 @@ list_of_cons:
 typecons:
   | MAJIDENT
       { DConstructor($1, []) }
-  | MAJIDENT LPAREN list_of_params RPAREN
+  | MAJIDENT LPAREN annotated_components RPAREN
       { DConstructor($1, $3) }
-
-
-list_of_params:
-  | IDENT COLON typevar
-      { [Param($1, $3)] } 
-  | IDENT COLON typevar COMMA list_of_params
-      { Param($1, $3) :: $5 } 
-
       
-list_typevar:
-  | typevar
-      { [$1] }
-  | typevar COMMA list_typevar
-      { $1::$3 }
-
-list_of_expr: 
+exprs: 
   | expr
       { [$1] }
-  | expr COMMA list_of_expr
+  | expr COMMA exprs
       { $1::$3 }
 
 expr:
@@ -173,42 +191,40 @@ expr:
       { EVar($1) }
   | constante
       { $1 }
-  | LET LPAREN list_of_assigns RPAREN LBRACE expr RBRACE
+  | LET LPAREN assignments RPAREN LBRACE expr RBRACE
       { lets_of_list $3 $6 }
-  | CASE list_of_expr LBRACE filter RBRACE
-      { ECase($2, $4) } 
-  | IDENT  LPAREN list_of_expr RPAREN
+  | CASE exprs LBRACE filter RBRACE
+      { ECase($2, $4) }
+  | IDENT  LPAREN exprs RPAREN
       { ECall ($1, [], $3) }
-  | IDENT LBRACKET list_typevar RBRACKET LPAREN list_of_expr RPAREN
+  | IDENT LBRACKET annotations RBRACKET LPAREN exprs RPAREN
       { ECall ($1, $3, $6) }
-  | FUN LBRACKET list_typevar RBRACKET LPAREN list_of_params RPAREN
-      COLON typevar ARROW expr 
+  | FUN LBRACKET annotations RBRACKET LPAREN annotated_parameters RPAREN
+      COLON annotation ARROW expr 
       { (lambdas_of_list $3 $6 $9 $11) }
-  | FUN LPAREN list_of_params RPAREN
-      COLON typevar ARROW expr
+  | FUN LPAREN annotated_parameters RPAREN
+      COLON annotation ARROW expr
       { (lambdas_of_list [] $3 $6 $8) }
 
-
-
 constante:
-  | MAJIDENT LBRACKET list_typevar RBRACKET LPAREN list_of_expr RPAREN
-      { EConstant($1, build_annotation $3 $6) }
-  | MAJIDENT LPAREN list_of_expr RPAREN
-      { EConstant($1, $3) }
+  | MAJIDENT LBRACKET annotations RBRACKET LPAREN exprs RPAREN
+      { EConstant ($1, $3, $6) }
+  | MAJIDENT LBRACKET annotations RBRACKET
+      { EConstant ($1, $3, []) }
+  | MAJIDENT LPAREN exprs RPAREN
+      { EConstant ($1, [], $3) }
   | MAJIDENT
-      { EConstant($1,[]) }
-  | MAJIDENT LBRACKET list_typevar RBRACKET
-      { EConstant($1, build_annotation $3 []) }
-  | LBRACE list_of_couple RBRACE LBRACKET typevar RBRACKET
-      { EApplication($2, $5) }
-  | LBRACE RBRACE LBRACKET typevar RBRACKET
-      { EApplication([], $4) }
+      { EConstant ($1, [], []) }
+  | LBRACE list_of_key_value RBRACE LBRACKET annotation RBRACKET
+      { EMap ($2, $5) }
+  | LBRACE RBRACE LBRACKET annotation RBRACKET
+      { EMap ([], $4) }
 
- list_of_couple:
+list_of_key_value:
   | LPAREN expr COMMA expr RPAREN
-      { [EApplicationCouple($2, $4)] }
-  | LPAREN expr COMMA expr RPAREN COMMA list_of_couple
-      { EApplicationCouple($2,$4) :: $7 }
+      { [ EKeyValue ($2, $4) ] }
+  | LPAREN expr COMMA expr RPAREN COMMA list_of_key_value
+      { EKeyValue ($2,$4) :: $7 }
 
 list_of_pattern:
   | pattern
@@ -226,10 +242,10 @@ pattern:
 
 pattern_var:
   | UNDEFINED
-      { PVar("undefined", Tvar("Undefined")) }
-  | IDENT COLON typevar
+      { PVar("undefined", Var("Undefined")) }
+  | IDENT COLON annotation
       { PVar($1, $3) }
-  | ANONVAR COLON typevar
+  | ANONVAR COLON annotation
       { PVar("_",$3) }
 filter:
   | PIPE list_of_pattern ARROW expr
@@ -238,22 +254,25 @@ filter:
       { (pattern_of_list $2 $4) @ $5 } 
       
 pattern_application:
-  | LBRACE RBRACE LBRACKET typevar RBRACKET 
-      { PVoidApplication ($4) }
-  | LBRACE couple_pattern COMMA IDENT COLON typevar RBRACE
-      { PApplication ($2, Param($4, $6)) }
+  | LBRACE RBRACE LBRACKET annotation RBRACKET 
+      { PEmptyMap ("{}", $4) }
+  | LBRACE key_value COMMA pattern RBRACE
+      { PMap ($2, $4) }
 
-couple_pattern:
-  | LPAREN pattern_var COMMA pattern_var RPAREN
-      { PCouple($2,$4) }
+key_value:
+  | 
+      { [ ] }
+  | LPAREN pattern COMMA pattern RPAREN COMMA key_value
+      { PKeyValue ($2, $4) :: $7 }
+
 pattern_constant:
-  | MAJIDENT LBRACKET list_typevar RBRACKET LPAREN list_of_pattern RPAREN
-      { PCons($1, $3, $6) }
-  | MAJIDENT LBRACKET list_typevar RBRACKET
-      { PCons($1, $3, []) }
+  | MAJIDENT LBRACKET annotations RBRACKET LPAREN list_of_pattern RPAREN
+      { PCons ($1, $3, $6) }
+  | MAJIDENT LBRACKET annotations RBRACKET
+      { PCons ($1, $3, []) }
   | MAJIDENT LPAREN list_of_pattern RPAREN
-      { PCons($1, [], $3) }
+      { PCons ($1, [], $3) }
   | MAJIDENT
-      { PCons($1, [], []) }
+      { PCons ($1, [], []) }
 
 %%

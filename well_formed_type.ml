@@ -1,19 +1,6 @@
 (*****************************************************************************)
-(*     This file is part of FSafe.                                           *)
 (*                                                                           *)
-(*     FSafe is free software: you can redistribute it and/or modify         *)
-(*     it under the terms of the GNU General Public License as published by  *)
-(*     the Free Software Foundation, either version 3 of the License, or     *)
-(*     (at your option) any later version.                                   *)
-(*                                                                           *)
-(*     FSafe is distributed in the hope that it will be useful,              *)
-(*     but WITHOUT ANY WARRANTY; without even the implied warranty of        *)
-(*     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *)
-(*     GNU General Public License for more details.                          *)
-(*                                                                           *)
-(*     You should have received a copy of the GNU General Public License     *)
-(*     along with FSafe.  If not, see <http://www.gnu.org/licenses/>.        *)
-(*                                                                           *)
+(* F-Safe                                                                    *)
 (*                                                                           *)
 (* File        : well_formed_type.ml                                         *)
 (* Description : check consistency of type declarations after parsing        *)
@@ -24,8 +11,8 @@ open Fsafe
 
 exception Duplicate of string
 
-type tconsApp = TConsApp of string * ptyp list
-type tscheme = Scheme of ptyp list * param list * tconsApp 
+type tscheme = Scheme of variable list * annotated_parameter list * ptyp 
+
 module SMap = Map.Make(String)
 
 type trie = Trie of ( bool * arcs )
@@ -125,13 +112,23 @@ let rec string_of_ptyplist = function
   | ptyp :: [] -> string_of_ptyp ptyp
   | ptyp :: rest -> (string_of_ptyp ptyp) ^ ", " ^ (string_of_ptyplist rest)
 
+and string_of_atyplist = function
+  | [] -> ""
+  | atyp :: [] -> string_of_atyp atyp
+  | atyp :: rest -> (string_of_atyp atyp) ^ ", " ^ (string_of_atyplist rest)
+
 (* ptyp -> string *)
 and string_of_ptyp = function
-  | Tvar s | TvarPolymorphic s-> s
-  | Tarrow (s, ptyp) | TarrowPolymorphic (s, ptyp) -> 
-    s ^ " -> " ^ (string_of_ptyp ptyp)
-  | Tparam (s, ptyplist) | TparamPolymorphic (s, ptyplist) -> 
-    s ^ "[" ^ (string_of_ptyplist ptyplist) ^ "]"
+  | Tvar s -> s
+  | Tarrow (t1, t2) -> (string_of_ptyp t1)  ^ " -> " ^ (string_of_ptyp t2)
+  | Tparam (s, ts) ->
+    s ^ "[" ^ (string_of_atyplist (List.map (fun (APar (_, t)) -> t) ts)) ^ "]"
+
+and string_of_atyp = function
+  | Var s -> s
+  | AArrow (t1, t2) -> (string_of_atyp t1) ^ " -> " ^ (string_of_atyp t2)
+  | AParam (s, ts) ->
+    s ^ "[" ^ string_of_atyplist ts
 
 (* print_strings : string list -> unit *)
 let rec print_strings = function
@@ -141,7 +138,7 @@ let rec print_strings = function
 (* check_list_of_param : string -> trie -> param -> unit *)
 let rec check_list_of_param cons trie = function
   | [] -> ()
-  | Param (s,_) :: rest ->
+  | APar (s, _) :: rest ->
     try
       check_list_of_param cons (enter trie s) rest
     with Duplicate s ->
@@ -177,42 +174,40 @@ let rec check_list_of_constructor constrie = function
 (* check_list_of_definition : trie -> trie -> data_type_definition -> unit *)
 let rec check_list_of_definition typeidenttrie constrie = function
   | [] -> ()
-  | DDatatype (s,ptyplist,conslist) :: rest -> 
-    check_list_of_ptyp ptyplist;
+  | DTypeDef (tc, _, conslist) :: rest -> 
     begin
       try
 	check_list_of_definition 
-	  (enter typeidenttrie s) 
+	  (enter typeidenttrie tc) 
 	  (check_list_of_constructor constrie conslist)
 	  rest
-      with Duplicate s ->
-	raise (failwith ("Duplicate type identifier " ^ s))
+      with Duplicate tc ->
+	raise (failwith ("Duplicate type identifier " ^ tc))
     end
  
 (* check : fsafe -> unit *)
 let check = function
-    Fsafe (l,_,_) -> check_list_of_definition empty empty l
+    { types = l; globals = _; entry = _ } -> check_list_of_definition empty empty l
 
 
 (* check : fsafe -> SMap *)
 let create_tscheme_map ast =
   match ast with
-      Fsafe([],_,_) -> SMap.empty
-    | Fsafe(typeList,_,_) ->  
+      { types = []; globals = _; entry = _ } -> SMap.empty
+    | { types = ts; globals = _; entry = _ } ->  
       let rec createScheme tlist map =
 	match tlist with
           | [] -> map
-          | (DDatatype (typ, ptypListe, constructorliste)) :: l ->	    
+          | DTypeDef (tc, tvs, dcs) :: l ->	    
             let rec createConsListe ll mapp = 
-	      match ll  with
-		  [] -> createScheme l mapp
-		| DConstructor (const, paramListe) :: lll -> 
-		  SMap.add 
-		    const 
-		    (Scheme(ptypListe,
-			    paramListe,
-			    TConsApp(typ,ptypListe))) 
-		    (createConsListe lll mapp) 
-	    in  createConsListe constructorliste map
-      in createScheme typeList SMap.empty
-
+	      match ll with
+		| [] -> mapp
+		| DConstructor (dc, aps) :: lll -> 
+		  let map' =
+		    SMap.add dc (Scheme (tvs, aps, Tparam (tc, aps))) mapp in
+		  createConsListe lll map' 
+	    in
+	    let map' = createConsListe dcs map in
+	    createScheme l map'
+      in createScheme ts SMap.empty
+      
