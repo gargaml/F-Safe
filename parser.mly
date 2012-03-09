@@ -11,7 +11,7 @@
   open Fsafe
   open List
 
-  let rec lets_of_list l expr 
+  let rec lets_of_list l expr
     match l with
       | [] -> expr
       | (x, a)::t -> ELet(x, a, lets_of_list t expr)
