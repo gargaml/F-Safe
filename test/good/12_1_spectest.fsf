@@ -1,0 +1,5 @@
+def pred(n:nat) : option[nat] = case n {
+| Zero => None[nat]
+| Succ(n':nat) => Some[nat](n')
+}
+

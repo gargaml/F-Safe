@@ -1,0 +1,1 @@
+type tree[A,B] = Empty(a:list[A,nat[B]])
