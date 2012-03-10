@@ -2,35 +2,34 @@
 (*                                                                           *)
 (* F-Safe                                                                    *)
 (*                                                                           *)
-(* File        : Matrix_of_relation.ml                                       *)
+(* File        : relationmatrix.ml                                           *)
 (* Description : definition of matrix                                        *)
 (*                                                                           *)
 (*****************************************************************************)
 
+exception Exception_incompatible_dimensions ;;
+
 type relation =
-    Inf
+  | Inf
   | Eq
   | Unknown
 
-type matrix_of_relations = { mutable data : relation array array ; nb_c : int ; nb_l : int }
-
-exception Exception_incompatible_dimensions ;;
+type relationmatrix = 
+    { mutable data : relation array array ; nb_c : int ; nb_l : int }
 
 let add relations =
   match relations with
-      (Inf, _) | (_, Inf) -> Inf
+    | (Inf, _) | (_, Inf) -> Inf
     | (Eq, _) -> Eq
     | (Unknown, Eq) -> Eq
     | (Unknown, Unknown) -> Unknown
-;;
 
 let mult relations =
   match relations with
-      (Unknown, _) | (_, Unknown) -> Unknown
+    | (Unknown, _) | (_, Unknown) -> Unknown
     | (Inf, _) -> Inf
     | (Eq, Inf) -> Inf
     | (Eq, Eq) -> Eq
-;;
 
 (* Mutliplication of two matrices of relations *)
 let multiplication m1 m2 = 
@@ -38,7 +37,8 @@ let multiplication m1 m2 =
     let lim_i = (m1.nb_l - 1) in
       let lim_j = (m2.nb_c - 1) in
         let lim_k = (m1.nb_c - 1) in
-          let matrix_product = ref (Array.make_matrix m1.nb_l m2.nb_c Unknown) in 
+          let matrix_product = 
+	    ref (Array.make_matrix m1.nb_l m2.nb_c Unknown) in 
             for i = 0 to lim_i do
               let line = ref (Array.make m2.nb_c Unknown) in 
                 for j = 0 to lim_j do
@@ -55,4 +55,20 @@ let multiplication m1 m2 =
             { data = !matrix_product ; nb_l = m1.nb_l ; nb_c = m2.nb_c } ;
   else
     raise Exception_incompatible_dimensions
-;;
+      
+let string_of_relation x = 
+  match x with
+    | Inf     -> "< "
+    | Eq      -> "= " 
+    | Unknown -> "? " 
+	
+let string_of_relationmatrix m =
+  let accu = ref "" in
+    for i = 0 to m.nb_l - 1 do
+      for j = 0 to m.nb_c - 1 do
+	accu := !accu ^ (string_of_relation m.data.(i).(j))
+      done;
+      accu := !accu ^ "\n"
+    done;
+    !accu
+      
