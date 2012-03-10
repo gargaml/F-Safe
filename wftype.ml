@@ -15,7 +15,7 @@
 (*     along with FSafe.  If not, see <http://www.gnu.org/licenses/>.        *)
 (*                                                                           *)
 (*                                                                           *)
-(* File        : wftype.ml                                         *)
+(* File        : wftype.ml                                                   *)
 (* Description : check consistency of type declarations after parsing        *)
 (*                                                                           *)
 (*****************************************************************************)
