@@ -29,8 +29,8 @@ open Printf
 open Interpret
 open Typechecker
 open Termination
-open Well_formed_type
 open Pprinter
+open Callgraph
 
 (* parse : Lexing.lexbuf -> ?? *)
 let parse lexbuf =
@@ -38,7 +38,9 @@ let parse lexbuf =
     Parser.fsafe Lexer.token lexbuf
   with
     | Parser.Error ->
-      Printf.fprintf stderr "At offset %d: lexeme is %s  syntax error.\n%!" (Lexing.lexeme_start lexbuf) (Lexing.lexeme lexbuf);Fsafe.Fsafe([],[],[])
+      Printf.fprintf stderr "At offset %d: lexeme is %s  syntax error.\n%!" 
+	(Lexing.lexeme_start lexbuf) (Lexing.lexeme lexbuf);
+	Fsafe.Fsafe([],[],[])
 
 (* handle : string -> () *)
 let handle filename =
@@ -58,14 +60,14 @@ let handle filename =
 
     (* well-formed type *)
     if !verbose then printf "*** Wellformedness checking... ";
-    Well_formed_type.check ast;
+    Wftype.check ast;
     if !verbose then printf "done\n";
 
     (* well-formed type *)
     if !verbose then printf "** Creation of TScheme map... ";
-    ignore (Well_formed_type.create_tscheme_map ast);
-    let m = Well_formed_type.create_tscheme_map ast in
-    if !verbose then printf "done, unumber of elements %d\n" (SMap.cardinal m);
+    ignore (Wftype.create_tscheme_map ast);
+    let m = Wftype.create_tscheme_map ast in
+    if !verbose then printf "done, unumber of elements %d\n" (Wftype.SMap.cardinal m);
 
     (* type checking *)
     (* Uncomment this code when typechecking is implemented

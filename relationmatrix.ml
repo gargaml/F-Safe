@@ -17,6 +17,9 @@ type relation =
 type relationmatrix = 
     { mutable data : relation array array ; nb_c : int ; nb_l : int }
 
+let empty c l = 
+  { data = Array.create_matrix c l Unknown ; nb_c = c ; nb_l = l }
+
 let add relations =
   match relations with
     | (Inf, _) | (_, Inf) -> Inf

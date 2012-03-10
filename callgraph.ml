@@ -1,5 +1,5 @@
 open Relationmatrix
-open Fsafe.ml
+open Fsafe
 
 
 module Graph = Map.Make(
@@ -11,43 +11,42 @@ end);;
 
 (* called function name * ( calling function args * called function args * 
    relation matrix beetween calling and called function) *)
-type callgraph = (string*(string list*string list*matrix_of_relation)) list
+type callgraph = (string*(string list*string list*relationmatrix)) list
 
 
 let rec inparamlist callingparams =
   match callingparams with 
       [] -> []
-    | Param (p,_) :: l ->  p :: (inparams l);;
+    | Param (p,_) :: l ->  p :: (inparamlist l);;
 
 			
 let rec outparamlist x = 
   match x with 
-    |[] -> []
-    |  EVar s :: l -> s :: getOutParam l
-    | EConstant (s,_) :: l-> s :: getOutParam l
-    | _ -> failwith " ")  
+    | [] -> []
+    | EVar s :: l -> s :: outparamlist l
+    | EConstant (s, _) :: l-> s :: outparamlist l
+    | _ -> failwith " "  
 	  
 (*Fsafe.fsafe -> Callgraph.callgraph*)
+(* 
 let build_callgraph prog =
   match prog with 
-      Fsafe(_,defs,exps) -> 
+      Fsafe(_, defs, exps) -> 
 	let getgraph graph_map exp =
 	  match exp with
 	    | ECall  (fname,_,exps) -> 
-	      let checkdef graph_mapp def= 
+	      let checkdef graph_mapp def = 
 		match def with
-		  |DFunction (fname,_,callingparms,_,exp) ->
+		  | DFunction (fname, _, callingparams, _, exp) ->
 		    let inparams = inparamlist callingparams in
 		    match exp with  
-		      | ECall (fname_calledf,_,exps) -> 	      
+		      | ECall (fname_calledf, _, exps) -> 	      
 			let outparams = outparamlist exps in 
-			Graph.add fname (calledf,
+			Graph.add fname (fname_calledf,
 					 (inparams, outparams,
-					  matrix_of_relation)) 
+					  Relationmatrix.empty)) 
 			  graph_mapp
-                      | _ -> 
-	      in List.fold checkdef graph_map defs
+                      | _ -> failwith "Not implemented"
+	      in List.fold_left checkdef graph_map defs
 	in List.fold  getgraph Graph.empty exps
-	
-	
-	
+*)
