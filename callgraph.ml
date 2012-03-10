@@ -77,9 +77,9 @@ let rec outparamlist x =
 let dot_of_callgraph graph =
   let oc = open_out "callgraph.dot" in
   fprintf oc "digraph Callgraph {\n";
-  Graph.iter (fun k _ -> fprintf oc "\"%s\" [ fontcolor=blue ]\n" k) graph;
-  Graph.iter (fun k ls -> 
-    List.iter (fun (l, _) -> fprintf oc "\"%s\" -> \"%s\" [ fontcolor=red ]"
+  CallGraph.iter (fun k _ -> fprintf oc "\"%s\" [ fontcolor=blue ]\n" k) graph;
+  CallGraph.iter (fun k ls -> 
+    List.iter (fun (l, _, _, _) -> fprintf oc "\"%s\" -> \"%s\" [ fontcolor=red ]"
       k l) ls) graph;
   fprintf oc "}\n";
   close_out oc
