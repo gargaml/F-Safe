@@ -67,7 +67,8 @@ let handle filename =
     if !verbose then printf "** Creation of TScheme map... ";
     ignore (Wftype.create_tscheme_map ast);
     let m = Wftype.create_tscheme_map ast in
-    if !verbose then printf "done, unumber of elements %d\n" (Wftype.SMap.cardinal m);
+    if !verbose then printf "done, unumber of elements %d\n" 
+      (Wftype.SMap.cardinal m);
 
     (* type checking *)
     (* Uncomment this code when typechecking is implemented
@@ -78,7 +79,10 @@ let handle filename =
     
     (* callgraph building *)
     if !verbose then printf "*** Callgraph building...\n";
-    build_callgraph ast;
+   (* build_callgraph ast;*)
+    let m = Callgraph.build_callgraph ast in 
+    if !verbose then printf "done, number of elements %d\n" 
+      (Callgraph.CallGraph.cardinal m);
     
     printf "=> Termination result : don't know...\n";
     
