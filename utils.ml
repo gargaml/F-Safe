@@ -15,13 +15,16 @@
 (*     along with FSafe.  If not, see <http://www.gnu.org/licenses/>.        *)
 (*                                                                           *)
 (*                                                                           *)
-(* File        : config.ml                                                   *)
-(* Description : here is declared global variables/settings for fsafe        *)
+(* File        : utils.ml                                                    *)
+(* Description : utils functions and tools                                   *)
 (*                                                                           *)
 (*****************************************************************************)
 
-(* disable/enable debug messages *)
-let debug_on = ref true;;
-
-(* verbose mode *)
-let verbose = ref true
+(* val string_of_list : ('a -> string) -> string -> 'a list -> string = fun *)
+let string_of_list fn sep lst =
+  let rec f l =
+    match l with
+      | [] -> ""
+      | h::[] -> fn h
+      | h::t -> (fn h) ^ sep ^ (f t)
+  in f lst

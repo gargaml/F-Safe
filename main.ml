@@ -38,6 +38,7 @@ let interpret file =
 (* usage strings *)
 let errmsg = "Options are :"
 let doc_verbose = "Set verbose mode"
+let doc_debug_on = "Set debug mode"
 
 (* entry point *)
 (* main : () -> () *)
@@ -46,6 +47,7 @@ let main () =
     Arg.parse
       [
 	"-v", Arg.Set verbose, doc_verbose;
+	"-d", Arg.Set debug_on, doc_debug_on;
       ]
       interpret
       errmsg;

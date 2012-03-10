@@ -15,13 +15,10 @@
 (*     along with FSafe.  If not, see <http://www.gnu.org/licenses/>.        *)
 (*                                                                           *)
 (*                                                                           *)
-(* File        : config.ml                                                   *)
-(* Description : here is declared global variables/settings for fsafe        *)
+(* File        : pprinter.ml                                                 *)
+(* Description : fsafe pretty printer                                        *)
 (*                                                                           *)
 (*****************************************************************************)
 
-(* disable/enable debug messages *)
-let debug_on = ref true;;
-
-(* verbose mode *)
-let verbose = ref true
+let string_of_fsafe _ =
+  "Ugo is coding it !"

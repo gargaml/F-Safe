@@ -20,7 +20,14 @@
 (*                                                                           *)
 (*****************************************************************************)
 
+open Printf
+
 (* termination_check : ?? -> ?? *)
 let termination_check ast =
   ignore (ast);
   failwith "Not yet implemented"
+
+(* callgraph building *)
+let build_callgraph ast =
+  ignore (ast);
+  printf "Adel and Sergei are coding it !\n"

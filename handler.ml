@@ -30,6 +30,7 @@ open Interpret
 open Typechecker
 open Termination
 open Well_formed_type
+open Pprinter
 
 (* parse : Lexing.lexbuf -> ?? *)
 let parse lexbuf =
@@ -48,36 +49,43 @@ let handle filename =
   
   try
     (* parsing *)
-    if !verbose then printf "Parsing... ";
+    if !verbose then printf "*** Parsing... ";
     let lexbuf = Lexing.from_channel source in
     let ast = parse lexbuf in
     if !verbose then printf "done\n";
+    
+    if !debug_on then printf "*** PPrinter :\n%s\n" (string_of_fsafe ast);
 
     (* well-formed type *)
-    if !verbose then printf "Well-formed type checking... ";
+    if !verbose then printf "*** Wellformedness checking... ";
     Well_formed_type.check ast;
     if !verbose then printf "done\n";
 
     (* well-formed type *)
-    if !verbose then printf "Creation of TScheme map... ";
+    if !verbose then printf "** Creation of TScheme map... ";
     ignore (Well_formed_type.create_tscheme_map ast);
     let m = Well_formed_type.create_tscheme_map ast in
     if !verbose then printf "done, unumber of elements %d\n" (SMap.cardinal m);
 
     (* type checking *)
-    if !verbose then printf "Type checking... ";
-    ignore (typecheck ast);
-    if !verbose then printf "done\n";
+    (* Uncomment this code when typechecking is implemented
+       if !verbose then printf "Type checking... ";
+       ignore (typecheck ast);
+       if !verbose then printf "done\n";
+    *)
     
-    (* termination checking *)
-    if !verbose then printf "Termination checking... ";
-    ignore (termination_check ast);
-    if !verbose then printf "done\n";
+    (* callgraph building *)
+    if !verbose then printf "*** Callgraph building...\n";
+    build_callgraph ast;
+    
+    printf "=> Termination result : don't know...\n";
     
     (* interpreting *)
-    if !verbose then printf "Interpreting... ";
-    ignore (interpret ast);
-    if !verbose then printf "done\n";
+    (* Uncomment this code when interpreting is implemented
+       if !verbose then printf "Interpreting... ";
+       ignore (interpret ast);
+       if !verbose then printf "done\n";
+    *)
     
     close_files ()
   with
