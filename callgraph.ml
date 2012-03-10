@@ -16,16 +16,17 @@
 (*                                                                           *)
 (*                                                                           *)
 (* File        : callGraph.ml                                                *)
-(* Description : construction of the functions call graph                    *)
-(*                                                                           *)
+(* Description : callgraph and termination stuff                             *)
 (*****************************************************************************)
+
 open Relationmatrix
 open Fsafe
+open Printf
 
 
 module CallGraph = Map.Make(
 struct 
-  type t =string
+  type t = string
   let compare = String.compare
 end);;
 
@@ -48,7 +49,8 @@ let rec outparamlist x =
     | EVar s :: l -> s :: outparamlist l
     | EConstant (s, _) :: l-> s :: outparamlist l
     | _ -> failwith " "  
-	  
+
+
 (*Fsafe.fsafe -> Callgraph.edge*)
       
 let build_callgraph prog =
@@ -81,3 +83,13 @@ let build_callgraph prog =
 	    | _ -> failwith "not implemented"
 	in List.fold_left getgraph CallGraph.empty exps
 	
+
+let dot_of_callgraph graph =
+  let oc = open_out "callgraph.dot" in
+  fprintf oc "digraph Callgraph {\n";
+  CallGraph.iter (fun k _ -> fprintf oc "\"%s\" [ fontcolor=blue ]\n" k) graph;
+  CallGraph.iter (fun k ls -> 
+    List.iter (fun (l, _, _, _) -> fprintf oc "\"%s\" -> \"%s\" [ fontcolor=red ]"
+      k l) ls) graph;
+  fprintf oc "}\n";
+  close_out oc
