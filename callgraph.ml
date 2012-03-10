@@ -1,10 +1,33 @@
+(*****************************************************************************)
+(*     This file is part of FSafe.                                           *)
+(*                                                                           *)
+(*     FSafe is free software: you can redistribute it and/or modify         *)
+(*     it under the terms of the GNU General Public License as published by  *)
+(*     the Free Software Foundation, either version 3 of the License, or     *)
+(*     (at your option) any later version.                                   *)
+(*                                                                           *)
+(*     FSafe is distributed in the hope that it will be useful,              *)
+(*     but WITHOUT ANY WARRANTY; without even the implied warranty of        *)
+(*     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *)
+(*     GNU General Public License for more details.                          *)
+(*                                                                           *)
+(*     You should have received a copy of the GNU General Public License     *)
+(*     along with FSafe.  If not, see <http://www.gnu.org/licenses/>.        *)
+(*                                                                           *)
+(*                                                                           *)
+(* File        : callgraph.ml                                                *)
+(* Description : callgraph and termination stuff                             *)
+(*                                                                           *)
+(*****************************************************************************)
+
 open Relationmatrix
 open Fsafe
+open Printf
 
 
 module Graph = Map.Make(
 struct 
-  type t =string
+  type t = string
   let compare = String.compare
 end);;
 
@@ -50,3 +73,13 @@ let build_callgraph prog =
 	      in List.fold_left checkdef graph_map defs
 	in List.fold  getgraph Graph.empty exps
 *)
+
+let dot_of_callgraph graph =
+  let oc = open_out "callgraph.dot" in
+  fprintf oc "digraph Callgraph {\n";
+  Graph.iter (fun k _ -> fprintf oc "\"%s\" [ fontcolor=blue ]\n" k) graph;
+  Graph.iter (fun k ls -> 
+    List.iter (fun (l, _) -> fprintf oc "\"%s\" -> \"%s\" [ fontcolor=red ]"
+      k l) ls) graph;
+  fprintf oc "}\n";
+  close_out oc
