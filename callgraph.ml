@@ -79,7 +79,7 @@ let build_callgraph prog =
 		    else graph_mapp
 		  | _ -> graph_mapp
 	      in List.fold_left checkdef graph_map defs
-	    | _ -> praph_map
+	    | _ -> graph_map
 	in List.fold_left getgraph CallGraph.empty exps
 	
 
