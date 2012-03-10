@@ -48,39 +48,38 @@ let rec outparamlist x =
     | [] -> []
     | EVar s :: l -> s :: outparamlist l
     | EConstant (s, _) :: l-> s :: outparamlist l
-    | _ -> failwith " "  
+    | _ -> failwith "not  a var or consant param in Callgraph.outparamlist"  
 
 
 (*Fsafe.fsafe -> Callgraph.edge*)
-      
 let build_callgraph prog =
   match prog with
       Fsafe(_, defs, exps) ->
         let getgraph graph_map exp =
           match exp with
-            | ECall  (fname,_,_) -> 
-              let checkdef graph_mapp def = 
+            | ECall  (fname,_,_) ->
+              let checkdef graph_mapp def =
                 match def with
                   | DFunction (fname2, _, callingparams, _, exp2) ->
                     if (fname = fname2) then
 		      begin
 			let inparams = inparamlist callingparams in
 			match exp2 with
-			  | ECall (fname_calledf, _, exprs) -> 	    
+			  | ECall (fname_calledf, _, exprs) ->
                             let outparams = outparamlist exprs in
-                            CallGraph.add fname 
-			      (fname_calledf, 
-			       inparams, outparams, 
-			       (Relationmatrix.empty 
-				  (List.length inparams) 
-				  (List.length outparams))) 
+                            CallGraph.add fname
+			      (fname_calledf,
+			       inparams, outparams,
+			       (Relationmatrix.empty
+				  (List.length inparams)
+				  (List.length outparams)))
 			      graph_mapp
 			  | _ -> graph_mapp
-		      end 
+		      end
 		    else graph_mapp
-		  | _ -> failwith "not implemented"
+		  | _ -> graph_mapp
 	      in List.fold_left checkdef graph_map defs
-	    | _ -> failwith "not implemented"
+	    | _ -> praph_map
 	in List.fold_left getgraph CallGraph.empty exps
 	
 
