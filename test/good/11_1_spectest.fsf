@@ -1,5 +1,6 @@
-def add(n:nat, m:nat) : nat = case n {
-| Zero => m
-| Succ(p:nat) => Succ(add(p,m))
+def add(n:nat, m:nat) : nat = 
+case n {
+  | Zero => m
+  | Succ(p:nat) => Succ(add(p,m))
 }
 

@@ -1,16 +1,12 @@
 def is_even:nat->bool,is_odd:nat->bool =
 let 
-(
-even : nat->bool =
-fun(n:nat) : bool =>
+(even : nat->bool = fun(n:nat) : bool =>
 case n 
 {
   | Zero => True
   | Succ(m:nat) => odd(m)
 }
-,
-odd:nat->bool=
-fun(n:nat) : bool =>
+,odd : nat->bool= fun(n:nat) : bool =>
 case n 
 {
   | Zero => False
@@ -19,9 +15,7 @@ case n
 }
 )
 {
-  even
-  ,
-  odd 
+  even , odd 
 }
 
-
+even (Succ(Succ(Succ(Zero))))

@@ -1,6 +1,8 @@
 type bintree = Empty | Node(val:nat,left:bintree,right:bintree)
 
 def bintree_size(t:bintree) : nat = case t {
-| Empty => Zero
-| Node(_:nat,l:bintree,r:bintree) => Succ(add(bintree_size(l),bintree_size(r)))
+  | Empty => Zero
+  | Node(_:nat,l:bintree,r:bintree)=> Succ(add(bintree_size(l),bintree_size(r)))
 }
+
+bintree_size(Empty)

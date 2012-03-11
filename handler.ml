@@ -78,11 +78,11 @@ let handle filename =
     *)
     
     (* callgraph building *)
-    if !verbose then printf "*** Callgraph building...\n";
-   (* build_callgraph ast;*)
+    if !verbose then printf "*** Callgraph building...";
     let m = Callgraph.build_callgraph ast in 
     if !verbose then printf "done, number of elements %d\n" 
       (Callgraph.CallGraph.cardinal m);
+    Callgraph.dot_of_callgraph m;
     
     printf "=> Termination result : don't know...\n";
     

@@ -61,34 +61,41 @@ let build_callgraph prog =
               let checkdef graph_mapp def =
                 match def with
                   | DFunction (fname2, _, callingparams, _, exp2) ->
-                    if (fname = fname2) then
-		      begin
-			let inparams = inparamlist callingparams in
-			match exp2 with
-			  | ECall (fname_calledf, _, exprs) ->
-                            let outparams = outparamlist exprs in
-                            CallGraph.add fname
-			      (fname_calledf,
-			       inparams, outparams,
-			       (Relationmatrix.empty
-				  (List.length inparams)
-				  (List.length outparams)))
-			      graph_mapp
-			  | _ -> graph_mapp
-		      end
+		    if (fname = fname2) then 
+		      let inparams = inparamlist callingparams in
+		      match exp2 with
+			| ECall (fname_calledf, _, exprs) ->
+			  let outparams = outparamlist exprs in
+			  (try let noeud = CallGraph.find fname graph_mapp in
+			       CallGraph.add fname
+				 ((fname_calledf,
+				   inparams, outparams,
+				   (Relationmatrix.empty
+				      (List.length inparams)
+				      (List.length outparams))) :: noeud)
+				 graph_mapp
+			   with Not_found ->
+			     CallGraph.add fname
+			       [(fname_calledf,
+				 inparams, outparams,
+				 (Relationmatrix.empty
+				    (List.length inparams)
+				    (List.length outparams)))]
+			       graph_mapp)
+			| _ -> graph_mapp
 		    else graph_mapp
 		  | _ -> graph_mapp
 	      in List.fold_left checkdef graph_map defs
 	    | _ -> graph_map
 	in List.fold_left getgraph CallGraph.empty exps
 	
-
+	
 let dot_of_callgraph graph =
   let oc = open_out "callgraph.dot" in
   fprintf oc "digraph Callgraph {\n";
   CallGraph.iter (fun k _ -> fprintf oc "\"%s\" [ fontcolor=blue ]\n" k) graph;
   CallGraph.iter (fun k ls -> 
-    List.iter (fun (l, _, _, _) -> fprintf oc "\"%s\" -> \"%s\" [ fontcolor=red ]"
-      k l) ls) graph;
+    List.iter (fun (l, _, _, _) -> 
+      fprintf oc "\"%s\" -> \"%s\" [ fontcolor=red ]" k l) ls) graph;
   fprintf oc "}\n";
   close_out oc

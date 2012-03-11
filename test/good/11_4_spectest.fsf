@@ -1,1 +1,3 @@
-type bintree = Empty | Node(val:nat,left:bintree,right:bintree)
+type bintree = 
+Empty 
+| Node(val:nat,left:bintree,right:bintree)

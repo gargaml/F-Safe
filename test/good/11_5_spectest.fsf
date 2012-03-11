@@ -1,8 +1,11 @@
-type bintree = Empty | Node(val:nat,left:bintree,right:bintree)
+type bintree = 
+Empty 
+| Node(val:nat,left:bintree,right:bintree)
 
-Node(Succ(Succ(Succ(Succ(Zero)))),Node(Succ(Succ(Succ(Zero))),Empty,Empty)
-,Node(Succ(Succ(Succ(Succ(Succ(Zero))))),Node(Succ(Succ(Succ(Succ(Succ(Succ(Zero)))))),Empty,Empty),
-        Empty))
+Node(Succ(Succ(Succ(Succ(Zero)))),
+Node(Succ(Succ(Succ(Zero))),Empty,Empty,
+Node(Succ(Succ(Succ(Succ(Succ(Zero))))),
+Node(Succ(Succ(Succ(Succ(Succ(Succ(Zero)))))),Empty,Empty),Empty))
 
 
 
