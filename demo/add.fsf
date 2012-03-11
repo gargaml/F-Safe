@@ -1,0 +1,9 @@
+type nat = Zero | Succ(n:nat)
+
+def add(x:nat, y:nat) : nat =
+    case x {
+    	 | Zero => y
+	 | Succ(n:nat) => Succ(add(n, y))
+    }
+
+add(Succ(Succ(Zero)), Succ(Zero))

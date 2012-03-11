@@ -26,6 +26,7 @@
 
 open Config
 open Printf
+open Pprinter
 open Interpret
 open Typechecker
 open Termination
@@ -53,48 +54,39 @@ let handle filename =
   
   try
     (* parsing *)
-    if !verbose then printf "Parsing... ";
+    if !verbose then printf "*** Parsing...\n";
     let lexbuf = Lexing.from_channel source in
     let ast = parse lexbuf in
-    if !verbose then printf "done\n";
+    if !debug_on then printf "%s\n" (string_of_fsafe ast);
 
     (* well-formed type *)
-    if !verbose then printf "Well-formed type checking... ";
+    if !verbose then printf "*** Checking types well-formedness...\n";
     Wftype.check ast;
-    if !verbose then printf "done\n";
 
     (* well-formed type *)
-    if !verbose then printf "Creation of TScheme map... ";
-    ignore (Wftype.create_tscheme_map ast);
-    let m = Wftype.create_tscheme_map ast in
-    if !verbose then printf "done, unumber of elements %d\n" (SMap.cardinal m);
+    (* Uncomment this code when typechecking is implemented
+       if !verbose then printf "** Creating type schemes map...\n";
+       ignore (Wftype.create_tscheme_map ast);
+    *)
 
     (* type checking *)
     (* Uncomment this code when typechecking is implemented
-       if !verbose then printf "Type checking... ";
+       if !verbose then printf "Type checking...\n";
        ignore (typecheck ast);
-       if !verbose then printf "done\n";
     *)
-    (*if !verbose then printf "Type checking... ";
-    ignore (typecheck ast);
-    if !verbose then printf "done\n";  *)
-
-    (* callgraph building *)
-    if !verbose then printf "*** Callgraph building...";
-    let m = Callgraph.build_callgraph ast in 
-    if !verbose then printf "done, number of elements %d\n" 
-      (Callgraph.CallGraph.cardinal m);
-    Callgraph.dot_of_callgraph m;
     
     (* termination checking *)
-    (*if !verbose then printf "Termination checking... ";
-    ignore (termination_check ast);
-    if !verbose then printf "done\n";*)
+    if !verbose then printf "*** Termination checking...\n";
+    let results = termination_check ast in
+    printf "\n";
+    List.iter (fun (f,r) -> printf "Function %s %stermination check\n"
+      f (if r then "passes" else "don't passes")) results;
     
     (* interpreting *)
-    (*if !verbose then printf "Interpreting... ";
-    ignore (interpret ast);
-    if !verbose then printf "done\n";*)
+    (* Uncomment this code when interpreting is implemented
+       if !verbose then printf "Interpreting...\n";
+       ignore (interpret ast);
+    *)
 
     close_files ()
   with

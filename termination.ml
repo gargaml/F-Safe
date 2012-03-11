@@ -21,13 +21,16 @@
 (*****************************************************************************)
 
 open Printf
+open Config
 
 (* termination_check : ?? -> ?? *)
 let termination_check ast =
-  ignore (ast);
-  failwith "Not yet implemented"
+  (* callgraph building *)
+  if !verbose then printf "** Building callgraph...\n";
+  let g = Callgraph.build_callgraph ast in
+  if !debug_on then (
+    Callgraph.dot_of_callgraph g;
+    printf "callgraph saved in callgraph.dot\n"
+  );
+  [];
 
-(* callgraph building *)
-let build_callgraph ast =
-  ignore (ast);
-  printf "Adel and Sergei are coding it !\n"
