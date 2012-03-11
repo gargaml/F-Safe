@@ -40,27 +40,27 @@ type edge = string * in_param list * out_param list * relationmatrix
 let rec inparamlist callingparams =
   match callingparams with 
       [] -> []
-    | Param (p,_) :: l ->  p :: (inparamlist l);;
+    | APar (p,_) :: l ->  p :: (inparamlist l);;
 
 			
 let rec outparamlist x = 
   match x with 
     | [] -> []
     | EVar s :: l -> s :: outparamlist l
-    | EConstant (s, _) :: l-> s :: outparamlist l
+    | EConstant (s,_, _) :: l-> s :: outparamlist l
     | _ -> failwith "not  a var or consant param in Callgraph.outparamlist"  
 
 
 (*Fsafe.fsafe -> Callgraph.edge*)
 let build_callgraph prog =
-  match prog with
-      Fsafe(_, defs, exps) ->
+  (*match prog with
+      Fsafe(_, defs, exps) ->*)
         let getgraph graph_map exp =
           match exp with
             | ECall  (fname,_,_) ->
               let checkdef graph_mapp def =
                 match def with
-                  | DFunction (fname2, _, callingparams, _, exp2) ->
+                  | DFun (fname2, _, callingparams, _, exp2) ->
 		    if (fname = fname2) then 
 		      let inparams = inparamlist callingparams in
 		      match exp2 with
@@ -85,9 +85,9 @@ let build_callgraph prog =
 			| _ -> graph_mapp
 		    else graph_mapp
 		  | _ -> graph_mapp
-	      in List.fold_left checkdef graph_map defs
+	      in List.fold_left checkdef graph_map prog.globals
 	    | _ -> graph_map
-	in List.fold_left getgraph CallGraph.empty exps
+	in List.fold_left getgraph CallGraph.empty prog.entry
 	
 	
 let dot_of_callgraph graph =
