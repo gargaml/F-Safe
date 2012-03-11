@@ -1,9 +1,22 @@
 (*****************************************************************************)
+(*     This file is part of FSafe.                                           *)
 (*                                                                           *)
-(* F-Safe                                                                    *)
+(*     FSafe is free software: you can redistribute it and/or modify         *)
+(*     it under the terms of the GNU General Public License as published by  *)
+(*     the Free Software Foundation, either version 3 of the License, or     *)
+(*     (at your option) any later version.                                   *)
+(*                                                                           *)
+(*     FSafe is distributed in the hope that it will be useful,              *)
+(*     but WITHOUT ANY WARRANTY; without even the implied warranty of        *)
+(*     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *)
+(*     GNU General Public License for more details.                          *)
+(*                                                                           *)
+(*     You should have received a copy of the GNU General Public License     *)
+(*     along with FSafe.  If not, see <http://www.gnu.org/licenses/>.        *)
+(*                                                                           *)
 (*                                                                           *)
 (* File        : handler.ml                                                  *)
-(* Description : this file contains all the functions to run :               *)
+(* Description : main stream for ast :                                       *)
 (*               -> parsing                                                  *)
 (*               -> type checking                                            *)
 (*               -> termination checking                                     *)
@@ -19,23 +32,18 @@ open Termination
 open Wftype
 
 
-
 (* parse : Lexing.lexbuf -> ?? *)
 let parse lexbuf =
   try
     Parser.fsafe Lexer.token lexbuf
-   with   Parser.Error ->
-	Printf.fprintf stderr "At offset %d: lexeme is %s  syntax error.\n%!" (Lexing.lexeme_start lexbuf) (Lexing.lexeme lexbuf); { Fsafe.types = []; globals = []; entry = [] }
-  (*with Parser.error -> 
-   let curr = lexbuf.Lexing.lex_curr_p in
-   let line = curr.Lexing.pos_lnum in
-   let cnum = curr.Lexing.pos_cnum - curr.Lexing.pos_bol in
-   let tok = Lexing.lexeme lexbuf in
-   let err = Printf.sprintf
-      "line is %d charnum is %d token is %s error here"
-      line cnum tok in
-   failwith err
-  *)
+  with
+    | Parser.Error ->
+	Printf.fprintf stderr 
+	  "At offset %d: lexeme is %s  syntax error.\n%!"
+	  (Lexing.lexeme_start lexbuf)
+	  (Lexing.lexeme lexbuf);
+      { Fsafe.types = []; globals = []; entry = [] }
+
 (* handle : string -> () *)
 let handle filename =
   
@@ -91,5 +99,3 @@ let handle filename =
     close_files ()
   with
     | x -> close_files (); raise x
-
-

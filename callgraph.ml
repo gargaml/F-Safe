@@ -15,8 +15,9 @@
 (*     along with FSafe.  If not, see <http://www.gnu.org/licenses/>.        *)
 (*                                                                           *)
 (*                                                                           *)
-(* File        : callGraph.ml                                                *)
+(* File        : callgraph.ml                                                *)
 (* Description : callgraph and termination stuff                             *)
+(*                                                                           *)
 (*****************************************************************************)
 
 open Relationmatrix
