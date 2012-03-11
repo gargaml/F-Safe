@@ -20,7 +20,7 @@
 ###############################################################################
 
 SRCS = $(wildcard *.ml *.mli *.mll *.mly)
-TARGS = fsafe
+TARGS = fsafe cycle
 TARGS_WINDIR = _buildWin32
 KIND = native
 FLAGS = -w,Ae,-warn-error,A
@@ -29,7 +29,8 @@ all: $(TARGS)
 
 fsafe: _build/main.$(KIND)
 	cp $< $@
-
+cycle: _build/cycle.$(KIND)
+	cp $< $@
 fswin.exe: _buildWin32/main.$(KIND)
 	cp $< $@
 

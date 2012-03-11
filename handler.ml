@@ -17,7 +17,7 @@ open Interpret
 open Typechecker
 open Termination
 open Wftype
-open Cycle
+
 
 
 (* parse : Lexing.lexbuf -> ?? *)
@@ -87,7 +87,7 @@ let handle filename =
     (*if !verbose then printf "Interpreting... ";
     ignore (interpret ast);
     if !verbose then printf "done\n";*)
-    cycletest;
+
     close_files ()
   with
     | x -> close_files (); raise x
