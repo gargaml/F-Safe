@@ -87,13 +87,16 @@ let string_of_relationmatrix m =
       accu := !accu ^ "\n"
     done;
     !accu
-      
+open Printf
 let string_of_relationmatrix' m =
   let accu = ref "" in
   for i = 0 to m.nb_l - 1 do
     for j = 0 to m.nb_c - 1 do
-      accu := !accu ^ (string_of_relation m.data.(i).(j))
+      try
+	accu := !accu ^ (string_of_relation m.data.(i).(j))
+      with | Invalid_argument _ -> printf "%d %d\n" i j;
     done;
     accu := !accu ^ "\\n"
   done;
   !accu
+    

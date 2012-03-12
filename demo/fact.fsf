@@ -1,0 +1,25 @@
+type nat = Zero | Succ(n:nat)
+
+def add(x:nat, y:nat) : nat =
+    case x {
+    	 | Zero => y
+	 | Succ(n:nat) => Succ(add(n, y))
+    }
+
+def mult(x:nat, y:nat) : nat = 
+    case x {
+    	 | Zero => Zero
+	 | Succ(n:nat) =>
+	 let (m:nat = mult(n, y)) { add(m, y) }
+    }
+
+def fact(x:nat) : nat = 
+    case x {
+    	 | Zero => Succ(Zero)
+	 | Succ(n:nat) =>
+	 let (f:nat = fact(n)) { mult(x, f) }
+    }
+
+add(Zero, Zero),
+mult(Succ(Zero), Zero),
+fact(Succ(Succ(Succ(Zero))))

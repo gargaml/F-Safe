@@ -1,0 +1,10 @@
+type nat = Zero | Succ(n:nat)
+
+def up(x:nat) : nat =
+    case x {
+    	 | Zero => up(x)
+	 | Succ(n:nat) =>
+	 let (m:nat = Succ(n)) { up(m) }
+    }
+
+up(Zero)

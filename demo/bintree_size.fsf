@@ -1,0 +1,22 @@
+type bintree = Empty | Node(val:nat, left:bintree, right:bintree)
+
+def add(x:nat, y:nat) : nat =
+    case x {
+    	 | Zero => y
+	 | Succ(n:nat) => Succ(add(n, y))
+    }
+
+def bintree_size(t:bintree) : nat = case t {
+    | Empty => Zero
+    | Node(_:nat, l:bintree, r:bintree) =>
+      let (l1:nat = bintree_size(l)) {
+      let (r1:nat = bintree_size(r)) {
+      	  Succ(add(l1, r1))
+      }
+      }
+}
+
+add(Zero, Zero),
+bintree_size(Node(Zero, Node(Zero, Empty, Empty),
+	                Node(Zero, Node(Zero, Empty, Empty),
+			           Empty)))

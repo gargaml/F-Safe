@@ -1,0 +1,9 @@
+type list[T] = Nil | Cons(hd:T, tl:list[T])
+type nat = Zero | Succ(n:nat)
+
+def length(l:list):nat = case l {
+    | Nil[T] => Zero
+    | Cons[T](e:T, l2:list) => Succ(length(l2))
+}
+
+length(Cons(Zero, Cons(Succ(Zero), Cons(Succ(Succ(Zero)), Nil))))

@@ -105,7 +105,7 @@ let rec look_for_call' e t ip =
 	let m = empty (List.length ip) (List.length op) in
 	for i = 0 to m.nb_l - 1 do
 	  for j = 0 to m.nb_c - 1 do
-	    m.data.(i).(j) <-
+	    m.data.(j).(i) <-
 	      match get_relation t (List.nth ip j) (List.nth op i) with
 		| None -> Unknown
 		| Some s -> s
@@ -156,3 +156,4 @@ let dot_of_callgraph graph =
 	(string_of_relationmatrix' m)) ls) graph;
   fprintf oc "}\n";
   close_out oc
+

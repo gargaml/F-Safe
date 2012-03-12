@@ -22,7 +22,7 @@
 SRCS = $(wildcard *.ml *.mli *.mll *.mly)
 TARGS = fsafe cycle
 TARGS_WINDIR = _buildWin32
-KIND = native
+KIND = d.byte
 FLAGS = -w,Ae,-warn-error,A
 
 all: $(TARGS)

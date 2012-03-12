@@ -32,9 +32,12 @@ let diagonal_check matrix =
     let ok = ref false in
     let i = ref 0 in
     while not !ok && !i < matrix.nb_l do
-      if matrix.data.(!i).(!i) = Inf then
-	ok := true;
-      i := !i + 1;
+      try
+	if matrix.data.(!i).(!i) = Inf then
+	  ok := true;
+	i := !i + 1;
+      with
+	| Invalid_argument _ -> ()
     done;
     !ok
 
