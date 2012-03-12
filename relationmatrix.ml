@@ -88,3 +88,12 @@ let string_of_relationmatrix m =
     done;
     !accu
       
+let string_of_relationmatrix' m =
+  let accu = ref "" in
+  for i = 0 to m.nb_l - 1 do
+    for j = 0 to m.nb_c - 1 do
+      accu := !accu ^ (string_of_relation m.data.(i).(j))
+    done;
+    accu := !accu ^ "\\n"
+  done;
+  !accu

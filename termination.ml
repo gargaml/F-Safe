@@ -23,32 +23,44 @@
 open Printf
 open Config
 open Fsafe
+open Callgraph
+open Relationmatrix
 
 (* termination_check : ?? -> ?? *)
 let termination_check fsafe =
   
-  let rec look_for_call e =
-    match e with
-      | EConstant(_, _, es) ->
-	List.fold_left (fun acc e -> (look_for_call e)@acc) [] es
-      | ELet(_, a, b) -> (look_for_call a) @ (look_for_call b)
-      | ECall(f, _, _) -> [f]
-      | ECase(es, fs) ->
-	(List.fold_left (fun acc e -> (look_for_call e)@acc) [] es)
-	  @ (List.fold_left (fun acc (Filter(_,e)) -> (look_for_call e)@acc) [] fs)
-      | _ -> []
-  in
   let functions =
     List.fold_left (fun acc e -> (look_for_call e)@acc) [] fsafe.entry
   in
   
   (* callgraph building *)
   if !verbose then printf "   *** Building callgraph...\n";
-  let g = Callgraph.build_callgraph fsafe in
+  let g = Callgraph.build_callgraph fsafe functions in
   if !debug_on then (
     Callgraph.dot_of_callgraph g;
     printf "callgraph saved in callgraph.dot\n"
   );
   
+  (* TODO : cycles detection *)
+  (* TODO : graph completion *)
   
-  List.map (fun x -> (x, false)) functions
+  let diagonal_check matrix =
+    let ok = ref false in
+    let i = ref matrix.nb_l in
+    let j = ref matrix.nb_c in
+    while not !ok && !i < matrix.nb_l && !j < matrix.nb_c do
+      if matrix.data.(!i).(!j) = Inf then
+	ok := true;
+      i := !i + 1;
+      j := !j + 1;
+    done;
+    !ok
+  in
+
+  List.map (fun x -> 
+    let edges = CallGraph.find x g in
+    let result = List.fold_left (fun b (name, _, _, m) -> b && 
+      (if String.compare name x = 0 then true
+       else diagonal_check m)
+    ) true edges in
+    (x, result)) functions

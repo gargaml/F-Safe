@@ -52,7 +52,99 @@ let rec outparamlist x =
     | _ -> failwith "not  a var or consant param in Callgraph.outparamlist"  
 
 
-(*Fsafe.fsafe -> Callgraph.edge*)
+type tree =
+  | Node of string * tree list
+
+let init_tree ip =
+  Node("", (List.map (fun (APar(v, _)) -> Node(v, [])) ip))
+
+let rec add_child t x n =
+  match t with
+    | Node(p, ls) when p = x -> Node(p, Node(n, [])::ls)
+    | Node(p, ls) -> Node(p, List.map (fun l -> add_child l x n) ls)
+
+let get_relation t x n =
+  if x = n then Some Eq else
+    let rec g l flg =
+      match l with
+	| [] -> None
+	| h::t -> begin match f h flg with
+	    | None -> g t flg
+	    | Some r -> Some r
+	end
+    and f t flag =
+      match t with
+	| Node(p, _) when p = n -> Some flag
+	| Node(p, ls) when p = x -> g ls Inf
+	| Node(_, ls) -> g ls flag
+    in f t Unknown
+
+let rec look_for_call e =
+    match e with
+      | EConstant(_, _, es) ->
+	List.fold_left (fun acc e -> (look_for_call e)@acc) [] es
+      | ELet(_, a, b) -> (look_for_call a) @ (look_for_call b)
+      | ECall(f, _, _) -> [f]
+      | ECase(es, fs) ->
+	(List.fold_left (fun acc e -> (look_for_call e)@acc) [] es)
+	  @ (List.fold_left
+	       (fun acc (Filter(_,e)) -> (look_for_call e)@acc) [] fs)
+      | _ -> []
+
+let rec look_for_call' e t ip =
+    match e with
+      | EConstant(_, _, es) ->
+	List.fold_left (fun acc e -> (look_for_call' e t ip)@acc) [] es
+      | ELet(_, a, b) -> (look_for_call' a t ip) @ (look_for_call' b t ip)
+      | ECall(f, _, es) -> 
+	let op = List.map (fun e -> match e with
+	  | EVar s -> s
+	  | _ -> failwith "expression in call not supported") es in
+	let m = empty (List.length ip) (List.length op) in
+	for i = 0 to m.nb_l - 1 do
+	  for j = 0 to m.nb_c - 1 do
+	    m.data.(i).(j) <-
+	      match get_relation t (List.nth ip j) (List.nth op i) with
+		| None -> Unknown
+		| Some s -> s
+	  done;
+	done;
+	[(f, ip, op, m)]
+      | ECase(es, fs) ->
+	let p = match List.hd es with
+	  | EVar s -> s
+	  | _ -> failwith "expression in match not supported" in
+	let cs = List.fold_left (fun acc (Filter(p,_)) -> 
+	  match p with
+	    | PCons(_, _, ls) ->
+	      let cs1 = List.fold_left (fun acc l -> match l with
+		| PVar(v, _) -> v::acc
+		| _ -> failwith "nested pattern in deconstruction not supported") [] ls in
+	      cs1 @ acc
+	    | _ -> failwith "weird patterns in deconstruction not supported") [] fs
+	in
+	let t' = List.fold_left (fun t c -> add_child t p c) t cs in
+	(List.fold_left (fun acc (Filter(_,e)) -> (look_for_call' e t' ip)@acc) [] fs)
+      | _ -> []
+
+let build_callgraph fsafe fs =
+  let build f =
+    let vd = List.hd (List.filter (fun x ->
+      match x with
+	| DFun(v, _, _, _, _) when v = f -> true
+	| _ -> false) fsafe.globals) in
+    match vd with
+      | DFun(_, _, ip, _, e) ->
+	let tree =  init_tree ip in
+	look_for_call' e tree (List.map (fun (APar(v, _)) -> v) ip)
+      | _ -> []
+  in
+  List.fold_left (fun acc f ->
+    let edges = build f in
+    CallGraph.add f edges acc) CallGraph.empty fs
+    
+
+(*Fsafe.fsafe -> Callgraph.edge
 let build_callgraph prog =
   (*match prog with
       Fsafe(_, defs, exps) ->*)
@@ -88,7 +180,7 @@ let build_callgraph prog =
 		  | _ -> graph_mapp
 	      in List.fold_left checkdef graph_map prog.globals
 	    | _ -> graph_map
-	in List.fold_left getgraph CallGraph.empty prog.entry
+	in List.fold_left getgraph CallGraph.empty prog.entry*)
 	
 	
 let dot_of_callgraph graph =
@@ -96,7 +188,8 @@ let dot_of_callgraph graph =
   fprintf oc "digraph Callgraph {\n";
   CallGraph.iter (fun k _ -> fprintf oc "\"%s\" [ fontcolor=blue ]\n" k) graph;
   CallGraph.iter (fun k ls -> 
-    List.iter (fun (l, _, _, _) -> 
-      fprintf oc "\"%s\" -> \"%s\" [ fontcolor=red ]" k l) ls) graph;
+    List.iter (fun (l, _, _, m) -> 
+      fprintf oc "\"%s\" -> \"%s\" [ label=\"%s\",fontcolor=red ]" k l
+	(string_of_relationmatrix' m)) ls) graph;
   fprintf oc "}\n";
   close_out oc
