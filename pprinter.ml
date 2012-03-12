@@ -20,38 +20,135 @@
 (*                                                                           *)
 (*****************************************************************************)
 
-open Printf
+
+
 open Utils
 open Fsafe
 
-let string_of_type _ = 
-  "..."
+let rec string_of_variable = function
+  | s -> s
 
-let string_of_expression e =
-  let rec f e =
-    match e with
-      | EConstant(_, _, es) -> sprintf "...%s...\n"
-	(List.fold_left (fun acc e -> acc ^ (f e)) "" es)
-      | ELet(_, a, b) -> sprintf "...%s...%s...\n" (f a) (f b)
-      | ECall(fn, _, es) -> sprintf "(\"%s\" call)\n%s" fn
-	(List.fold_left (fun acc e -> acc ^ (f e)) "" es)
-      | ECase(es, fs) -> sprintf "...%s...%s...\n"
-	(List.fold_left (fun acc e -> acc ^ (f e)) "" es)
-	(List.fold_left (fun acc (Filter(_,e)) -> acc ^ (f e)) "" fs)
-      | _ -> ""
-  in f e
+and string_of_type_variable = function
+  | s -> s
 
-let string_of_global g =
-  match g with
-    | DFun(f, vs, _, _, e) ->
-      sprintf "def %s(%s) = %s\n" f
-	(string_of_list (fun x -> x) "," vs)
-	(string_of_expression e)
-    | _ -> "...\n"
+and string_of_data_constructor = function
+  | s -> s
 
-let string_of_fsafe fsafe =
-  sprintf "/* Types */\n%s\n\n/* Vars */\n%s\n\n/* Expressions */\n%s\n\n"
-    (string_of_list string_of_type "\n" fsafe.types)
-    (string_of_list string_of_global "\n" fsafe.globals)
-    (string_of_list string_of_expression "\n" fsafe.entry)
+and string_of_type_constructor = function
+  | s -> s
+
+and string_of_ptyp = function
+  | Tvar v -> string_of_variable v
+  | Tarrow (p1, p2) -> (string_of_ptyp p1) ^ "->" ^(string_of_ptyp p2)
+  | Tparam (t, acs) -> 
+      t ^ "[" ^ (string_of_list string_of_annotated_component ", " acs) ^ "]"
+  (* | _ -> failwith "Type of ptyp not found..." *)
+
+and string_of_atyp = function
+  | Var (v) -> v
+  | AArrow (a1, a2) -> 
+      (string_of_atyp a1) ^ " -> " ^ (string_of_atyp a2)
+  | AParam (t, ats) ->
+      t ^ "[" ^ (string_of_list string_of_atyp ", " ats) ^ "]"
+  (* | _ -> failwith "Type of atyp not found..." *) 
+
+
+and string_of_annotated_variable = function
+  | AVar (v, a) ->
+      v ^ " : " ^ (string_of_atyp a)
+
+and string_of_annotated_parameter = function
+  | APar (v, a) ->
+      v ^ " : " ^ (string_of_atyp a)
+  (* | _ -> failwith "Type of annotated parameter not found..." *)
+
+and string_of_annotated_component = function
+  | ACom (v, p) ->
+      v ^ " : " ^ (string_of_ptyp p)
+  (* | _ -> failwith "Type of annotated component not found..." *)
+
+and string_of_constructor_definition = function
+  | DConstructor (d, acs) ->
+      d ^ "(" ^ (string_of_list string_of_annotated_component ", " acs) ^ ")"
+  (* | _ -> failwith "Type of constructor not found..." *)
+
+
+and string_of_type_definition = function
+  | DTypeDef (t, [], cs) ->
+      t ^ " = " ^ (string_of_list string_of_constructor_definition ", " cs)
+  | DTypeDef (t, vs, cs) ->
+      t ^ "[ " ^ (string_of_list (fun x -> x) ", " vs) ^ " ] = " ^ (string_of_list string_of_constructor_definition ", " cs)
+  (* | _ -> failwith "Type of type_definition not found..." *)
+
+and string_of_key_value = function
+  | PKeyValue (p1, p2) ->
+      "(" ^ (string_of_pattern p1) ^ ", " ^ (string_of_pattern p2) ^ ")"
+  (* | _ -> failwith "Type of key value not found..." *)
+
+and string_of_pattern = function
+  | PVar (v, a) -> 
+      v ^ " : " ^ (string_of_atyp a)
+  | PCons (d, ats, ps) ->
+      d ^ "[ " ^ (string_of_list string_of_atyp ", " ats) ^ " ]( " ^ (string_of_list string_of_pattern ", " ps)
+  | PEmptyMap (d, a) -> 
+      d ^ "[ " ^ (string_of_atyp a) ^ " ]"
+  | PMap (ks, p) ->
+      "{" ^ (string_of_list string_of_key_value ", " ks) ^ ", " ^ (string_of_pattern p) ^ "}"
+  (* | _ -> failwith "Type of Pattern not found..." *)
+
+
+and string_of_filter = function
+  | Filter (p, e) ->
+      "| " ^ (string_of_pattern p) ^ " => " ^ (string_of_expression e)
+  (* | _ -> failwith "Type of Filter not found..." *)
+  
+
+and string_of_var_definition v =
+  match v with
+    | DVar (a, e) -> 
+	"def " ^ (string_of_annotated_variable a) ^ " = " ^ (string_of_expression e)
+    | DVars (avs, d, vs) ->  
+	"def " ^ (string_of_list string_of_annotated_variable ", " avs) ^ " = let( " ^ (string_of_def_local d) ^ " ){ " ^ (string_of_list string_of_variable ", " vs) ^ " }"
+    | DFun (v, vs, aps, a, e) ->
+	"def " ^ v ^ " [ " ^ (string_of_list (fun x -> x) ", " vs) ^ " ]( " ^ (string_of_list string_of_annotated_parameter ", " aps) ^ " ) : " ^ (string_of_atyp a) ^ " = " ^ (string_of_expression e)
+    (* | _ -> failwith "Type of var_definition not found..." *)  
+	
+and string_of_def_local (DLocal d) =
+  let string_couple (a, e) =
+    (string_of_annotated_variable a) ^ " = " ^ (string_of_expression e)
+  in
+  (string_of_list string_couple ", " d)
+  
+
+
+and string_of_expression e = 
+  match e with
+    | EVar v -> v
+    | EConstant (s, ats, es) -> 
+	s ^ (if (List.length ats) = 0 then "" else "[" ^ (string_of_list string_of_atyp ", " ats) ^ "]") ^ (if (List.length es) = 0 then "" else "(" ^ (string_of_list string_of_expression ", " es) ^ ")")
+    | EKeyValue (e1, e2) -> "Partie expérimentale à Jerem" ^ (string_of_expression e1)^(string_of_expression e2)
+    | EMap (es, a) -> "Partie expérimentale à Jerem" ^ (string_of_list string_of_expression ", " es)^(string_of_atyp a)
+    | ELet (a, e1, e2) -> "let (" ^ (string_of_annotated_variable a)^" = " ^ (string_of_expression e1) ^ ") { " ^ (string_of_expression e2) ^ " }"
+    | ELambda (ats, ap, at, e) -> 
+	"fun " ^ 
+	  (if (List.length ats) = 0 then 
+	     "" 
+	   else 
+	     "[" ^ (string_of_list string_of_atyp ", " ats) ^ "]") ^ 
+	  "(" ^ (string_of_annotated_parameter ap) ^ ")" ^
+	  " : " ^ (string_of_atyp at) ^ " => " ^ (string_of_expression e)
+    | ECall (s, ats, es) -> 
+	s ^ (if (List.length ats) = 0 then "" else "[" ^ (string_of_list string_of_atyp "," ats) ^ "]") ^ "(" ^ (string_of_list string_of_expression ", " es) ^ ")"
+    | ECase (es, fs) -> "case " ^ (string_of_list string_of_expression ", " es) ^ "{" ^ (string_of_list string_of_filter " " fs) ^ "}"
+    | EAnnotation (e, a) -> 
+	(string_of_expression e) ^ " : " ^ (string_of_atyp a)
+(*    | _ -> failwith "Type of Expression not found..." *)
+	
+
+and string_of_fsafe f =
+  let s1 = List.fold_left (fun acc t -> acc ^ (string_of_type_definition t)) "" f.types in
+  let s2 = List.fold_left (fun acc v -> acc ^ (string_of_var_definition v)) "" f.globals in
+  let s3 = List.fold_left (fun acc e -> acc ^ (string_of_expression e)) "" f.entry in
+  s1^"\n"^s2^"\n"^s3^"\n";;
+
 
