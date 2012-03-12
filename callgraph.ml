@@ -67,7 +67,7 @@ let build_callgraph prog =
             | DFun (fname2, _, callingparams, _, exp2) ->
 	      if (fname = fname2) then 
 		let inparams = inparamlist callingparams in
-		let parsecalledfun graph_mapp exp =
+		let rec parsecalledfun graph_mapp exp =
 		  (match exp with
 		    | ECall (fname_calledf, _, exprs) ->
 		      let outparams = outparamlist exprs in
@@ -87,12 +87,35 @@ let build_callgraph prog =
 				(List.length inparams)
 				(List.length outparams)))]		  
 			   graph_mapp) 
+		    | ECase (_,filters) -> 
+		      let exps = expressionsfilter filters in 
+		      List.fold_left parsecalledfun graph_mapp exps
+		    | EConstant (_,_,exprs) -> 
+		      List.fold_left parsecalledfun graph_mapp exprs
+		    | EKeyValue (expp1,expp2) -> 
+		      List.fold_left parsecalledfun graph_mapp [expp1;expp2]
+		    | ELet (_,expp1,expp2) -> 
+		      List.fold_left parsecalledfun graph_mapp [expp1;expp2]
+		    | ELambda (_,_,_,exp) -> parsecalledfun graph_mapp exp
+		    | EMap (exprs,_) -> 
+		      List.fold_left parsecalledfun graph_mapp exprs
+		    | EAnnotation (exp,_) -> parsecalledfun graph_mapp exp
 		    | _ -> graph_mapp) in
 		match exp2 with 
 		  | ECall (_,_,_) -> parsecalledfun graph_mapp exp2
 		  | ECase (_,filters) -> 
 		    let exps = expressionsfilter filters in 
 		    List.fold_left parsecalledfun graph_mapp exps
+		  | EConstant (_,_,exprs) -> 
+		    List.fold_left parsecalledfun graph_mapp exprs
+		  | EKeyValue (expp1,expp2) -> 
+		    List.fold_left parsecalledfun graph_mapp [expp1;expp2]
+		  | ELet (_,expp1,expp2) -> 
+		    List.fold_left parsecalledfun graph_mapp [expp1;expp2]
+		  | ELambda (_,_,_,exp) -> parsecalledfun graph_mapp exp
+		  | EMap (exprs,_) -> 
+		    List.fold_left parsecalledfun graph_mapp exprs
+		  | EAnnotation (exp,_) -> parsecalledfun graph_mapp exp
 		  | _ -> graph_mapp
 	      else graph_mapp
 	    | _ -> graph_mapp
