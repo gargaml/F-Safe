@@ -79,8 +79,9 @@ let handle filename =
     if !verbose then printf "*** Termination checking...\n";
     let results = termination_check ast in
     printf "\n";
-    List.iter (fun (f,r) -> printf "Function %s %stermination check\n"
-      f (if r then "passes" else "don't passes")) results;
+    List.iter (fun (f,r) -> printf "%s Function \"%s\" %s termination check\n"
+      (if r then "[X]" else "[ ]")
+      f (if r then "passes" else "doesn't pass")) results;
     
     (* interpreting *)
     (* Uncomment this code when interpreting is implemented

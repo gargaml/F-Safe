@@ -22,15 +22,33 @@
 
 open Printf
 open Config
+open Fsafe
 
 (* termination_check : ?? -> ?? *)
-let termination_check ast =
+let termination_check fsafe =
+  
+  let rec look_for_call e =
+    match e with
+      | EConstant(_, _, es) ->
+	List.fold_left (fun acc e -> (look_for_call e)@acc) [] es
+      | ELet(_, a, b) -> (look_for_call a) @ (look_for_call b)
+      | ECall(f, _, _) -> [f]
+      | ECase(es, fs) ->
+	(List.fold_left (fun acc e -> (look_for_call e)@acc) [] es)
+	  @ (List.fold_left (fun acc (Filter(_,e)) -> (look_for_call e)@acc) [] fs)
+      | _ -> []
+  in
+  let functions =
+    List.fold_left (fun acc e -> (look_for_call e)@acc) [] fsafe.entry
+  in
+  
   (* callgraph building *)
-  if !verbose then printf "** Building callgraph...\n";
-  let g = Callgraph.build_callgraph ast in
+  if !verbose then printf "   *** Building callgraph...\n";
+  let g = Callgraph.build_callgraph fsafe in
   if !debug_on then (
     Callgraph.dot_of_callgraph g;
     printf "callgraph saved in callgraph.dot\n"
   );
-  [];
-
+  
+  
+  List.map (fun x -> (x, false)) functions
