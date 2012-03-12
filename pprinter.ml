@@ -20,5 +20,37 @@
 (*                                                                           *)
 (*****************************************************************************)
 
-let string_of_fsafe _ =
-  "Ugo is coding it !"
+open Printf
+open Utils
+open Fsafe
+
+let string_of_type _ = 
+  "..."
+
+let string_of_expression e =
+  let rec f e =
+    match e with
+      | EConstant(_, _, es) -> sprintf "...%s...\n"
+	(List.fold_left (fun acc e -> acc ^ (f e)) "" es)
+      | ELet(_, a, b) -> sprintf "...%s...%s...\n" (f a) (f b)
+      | ECall(f, _, _) -> sprintf "(\"%s\" call)" f
+      | ECase(es, fs) -> sprintf "...%s...%s...\n"
+	(List.fold_left (fun acc e -> acc ^ (f e)) "" es)
+	(List.fold_left (fun acc (Filter(_,e)) -> acc ^ (f e)) "" fs)
+      | _ -> ""
+  in f e
+
+let string_of_global g =
+  match g with
+    | DFun(f, vs, _, _, e) ->
+      sprintf "def %s(%s) = %s\n" f
+	(string_of_list (fun x -> x) "," vs)
+	(string_of_expression e)
+    | _ -> "...\n"
+
+let string_of_fsafe fsafe =
+  sprintf "/* Types */\n%s\n\n/* Vars */\n%s\n\n/* Expressions */\n%s\n\n"
+    (string_of_list string_of_type "\n" fsafe.types)
+    (string_of_list string_of_global "\n" fsafe.globals)
+    (string_of_list string_of_expression "\n" fsafe.entry)
+

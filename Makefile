@@ -47,6 +47,7 @@ clean:
 	@ocamlbuild -classic-display -clean
 	@rm -f *~ $(TARGS)
 	@rm -f fswin.exe
+	@rm -f callgraph.dot callgraph.png callgraph.pdf
 	@ocamlbuild -classic-display -build-dir $(TARGS_WINDIR) -clean
 
 .PHONY: all clean
