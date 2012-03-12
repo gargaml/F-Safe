@@ -57,7 +57,7 @@ let handle filename =
     if !verbose then printf "*** Parsing...\n";
     let lexbuf = Lexing.from_channel source in
     let ast = parse lexbuf in
-    if !debug_on then printf "%s\n" (string_of_fsafe ast);
+    if !debug_on then print_string (string_of_fsafe ast);
 
     (* well-formed type *)
     if !verbose then printf "*** Checking types well-formedness...\n";
