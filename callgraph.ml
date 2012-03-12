@@ -47,8 +47,8 @@ let rec inparamlist callingparams =
 let rec outparamlist x = 
   match x with 
     | [] -> []
-    | EVar s :: l -> s :: outparamlist l
-    | EConstant (s,_, _) :: l-> s :: outparamlist l
+    | (EVar s) :: l -> s :: outparamlist l
+    | (EConstant (s,_, _)) :: l-> s :: outparamlist l
     | _ -> failwith "not  a var or consant param in Callgraph.outparamlist"  
 
 
@@ -144,45 +144,6 @@ let build_callgraph fsafe fs =
     CallGraph.add f edges acc) CallGraph.empty fs
     
 
-(*Fsafe.fsafe -> Callgraph.edge
-let build_callgraph prog =
-  (*match prog with
-      Fsafe(_, defs, exps) ->*)
-        let getgraph graph_map exp =
-          match exp with
-            | ECall  (fname,_,_) ->
-              let checkdef graph_mapp def =
-                match def with
-                  | DFun (fname2, _, callingparams, _, exp2) ->
-		    if (fname = fname2) then 
-		      let inparams = inparamlist callingparams in
-		      match exp2 with
-			| ECall (fname_calledf, _, exprs) ->
-			  let outparams = outparamlist exprs in
-			  (try let noeud = CallGraph.find fname graph_mapp in
-			       CallGraph.add fname
-				 ((fname_calledf,
-				   inparams, outparams,
-				   (Relationmatrix.empty
-				      (List.length inparams)
-				      (List.length outparams))) :: noeud)
-				 graph_mapp
-			   with Not_found ->
-			     CallGraph.add fname
-			       [(fname_calledf,
-				 inparams, outparams,
-				 (Relationmatrix.empty
-				    (List.length inparams)
-				    (List.length outparams)))]
-			       graph_mapp)
-			| _ -> graph_mapp
-		    else graph_mapp
-		  | _ -> graph_mapp
-	      in List.fold_left checkdef graph_map prog.globals
-	    | _ -> graph_map
-	in List.fold_left getgraph CallGraph.empty prog.entry*)
-	
-	
 let dot_of_callgraph graph =
   let oc = open_out "callgraph.dot" in
   fprintf oc "digraph Callgraph {\n";
