@@ -25,12 +25,12 @@ open Relationmatrix
 open Printf
 
 type cycle = (string*edge)list
-let rec explore_couple (callgraph:(edge list) CallGraph.t) (cycle:(cycle) )history = function
+let rec explore_couple callgraph cycle history = function
   | (funname, edges) ->
     match edges with 
       | [] -> []
       | edge :: rest -> 
-	let rec explore_edge (fun_name:string) (edge:edge) callgraph (cycle:(string*edge)list) history =
+	let rec explore_edge fun_name edge callgraph cycle history =
 	  match edge with 
 	    | (calledname,_,_,_) ->
 	      if (List.mem
