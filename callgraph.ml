@@ -23,6 +23,7 @@
 open Relationmatrix
 open Fsafe
 open Printf
+open Utils
 
 
 module CallGraph = Map.Make(
@@ -84,7 +85,8 @@ let rec look_for_call e =
       | EConstant(_, _, es) ->
 	List.fold_left (fun acc e -> (look_for_call e)@acc) [] es
       | ELet(_, a, b) -> (look_for_call a) @ (look_for_call b)
-      | ECall(f, _, _) -> [f]
+      | ECall(f, _, es) -> 
+	List.fold_left (fun acc e -> (look_for_call e)@acc) [f] es
       | ECase(es, fs) ->
 	(List.fold_left (fun acc e -> (look_for_call e)@acc) [] es)
 	  @ (List.fold_left

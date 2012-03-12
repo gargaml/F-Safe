@@ -26,6 +26,28 @@ open Fsafe
 open Callgraph
 open Relationmatrix
 
+module SSet = Set.Make(String)
+
+let diagonal_check matrix =
+    let ok = ref false in
+    let i = ref 0 in
+    while not !ok && !i < matrix.nb_l do
+      if matrix.data.(!i).(!i) = Inf then
+	ok := true;
+      i := !i + 1;
+    done;
+    !ok
+
+let is_terminating cg s f =
+  let edges = CallGraph.find f cg in
+  List.fold_left (fun b (g, _, _, m) ->
+    b && (
+      if String.compare f g = 0 then
+	diagonal_check m
+      else
+	SSet.mem g s
+    )) true edges
+
 (* termination_check : ?? -> ?? *)
 let termination_check fsafe =
   
@@ -44,23 +66,15 @@ let termination_check fsafe =
   (* TODO : cycles detection *)
   (* TODO : graph completion *)
   
-  let diagonal_check matrix =
-    let ok = ref false in
-    let i = ref matrix.nb_l in
-    let j = ref matrix.nb_c in
-    while not !ok && !i < matrix.nb_l && !j < matrix.nb_c do
-      if matrix.data.(!i).(!j) = Inf then
-	ok := true;
-      i := !i + 1;
-      j := !j + 1;
-    done;
-    !ok
-  in
-
-  List.map (fun x -> 
-    let edges = CallGraph.find x g in
-    let result = List.fold_left (fun b (name, _, _, m) -> b && 
-      (if String.compare name x = 0 then true
-       else diagonal_check m)
-    ) true edges in
-    (x, result)) functions
+  let count = ref (-1) in
+  let prev = ref 0 in
+  let s = ref SSet.empty in
+  while !count != !prev do
+    let tf = List.filter (is_terminating g !s) functions in
+    s := List.fold_left (fun s x -> SSet.add x s) !s tf;
+    prev := !count;
+    count := SSet.cardinal !s;
+  done;
+  
+  List.map (fun x -> (x, SSet.mem x !s)) functions
+  

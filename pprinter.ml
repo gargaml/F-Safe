@@ -33,7 +33,8 @@ let string_of_expression e =
       | EConstant(_, _, es) -> sprintf "...%s...\n"
 	(List.fold_left (fun acc e -> acc ^ (f e)) "" es)
       | ELet(_, a, b) -> sprintf "...%s...%s...\n" (f a) (f b)
-      | ECall(f, _, _) -> sprintf "(\"%s\" call)" f
+      | ECall(fn, _, es) -> sprintf "(\"%s\" call)\n%s" fn
+	(List.fold_left (fun acc e -> acc ^ (f e)) "" es)
       | ECase(es, fs) -> sprintf "...%s...%s...\n"
 	(List.fold_left (fun acc e -> acc ^ (f e)) "" es)
 	(List.fold_left (fun acc (Filter(_,e)) -> acc ^ (f e)) "" fs)

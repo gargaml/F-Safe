@@ -40,6 +40,9 @@ _build/%.$(KIND): $(SRCS)
 $(TARGS_WINDIR)/%.$(KIND): $(SRCS)
 	ocamlbuild -classic-display -cflags $(FLAGS) -no-links -build-dir $(TARGS_WINDIR) $*.$(KIND)
 
+%.pdf: %.dot
+	dot $< -Tpdf > $@
+
 check: fsafe
 	test/run.sh
 
