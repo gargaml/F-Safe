@@ -1,0 +1,49 @@
+\documentclass{beamer}
+\setbeamertemplate{navigation symbols}{}
+\usepackage[frenchb]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+
+\usepackage{listings}
+\usepackage{color}
+
+\newenvironment{proenv}{\only{\setbeamercolor{local structure}{fg=green}}}{}
+\newenvironment{conenv}{\only{\setbeamercolor{local structure}{fg=red}}}{}
+
+\usetheme{Warsaw}
+\beamersetuncovermixins{\opaqueness<1>{25}}{\opaqueness<2->{15}}
+
+\begin{document}
+ 
+\title{F-Safe}
+\author{
+	Joseph Afari \and 
+	Gary Benattar \and
+	Yoann Couillec \and
+ 	Aurelien Deharbe \and
+	Ugo Ditaranto \and
+	Adel Djoudi \and
+	Vincent Membre \and
+	Thierry Paulin \and
+	Jérémie Salvucci \and
+	Arnaud Sipasseuth \and
+	Sergey Vakulenko}
+\date{\today} 
+
+
+\begin{frame}
+  \titlepage
+\end{frame}
+
+\begin{frame}
+  \frametitle{Plan}
+  \tableofcontents
+\end{frame} 
+
+\input{g_proj1}
+
+\input{t_implem1}
+
+\input{g_proj2}
+
+\end{document}
