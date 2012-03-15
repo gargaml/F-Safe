@@ -28,3 +28,14 @@ let string_of_list fn sep lst =
       | h::[] -> fn h
       | h::t -> (fn h) ^ sep ^ (f t)
   in f lst
+
+let rec fun_indent i = 
+  match i with
+    | 0 -> ""
+    | _ -> "  " ^ (fun_indent (i - 1))
+
+
+let rec suppr_indent i t =
+  match (i,t) with
+    | ( 0, _) -> t
+    | ( _, t) -> (suppr_indent (i - 1) (String.sub t 2 ((String.length t) - 2)))

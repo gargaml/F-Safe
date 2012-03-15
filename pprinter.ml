@@ -23,6 +23,22 @@
 open Utils
 open Fsafe
 
+let ident = "  "
+
+let idtcpt = ref 0
+
+let vartag = "/************************************************/
+/*                Vars Defs                     */
+/************************************************/\n"
+
+let typetag = "/************************************************/
+/*                Types Defs                    */
+/************************************************/\n"
+
+let exprtag = "/************************************************/
+/*                Expressions                   */
+/************************************************/\n"
+
 let string_of_variable = function s -> s
 let string_of_type_variable = function s -> s
 let string_of_data_constructor = function s -> s
@@ -55,13 +71,14 @@ and string_of_constructor_definition = function
   | DConstructor (d, acs) ->
       d ^ " ( " ^(string_of_list string_of_annotated_component ", " acs)^ " ) "
 
-and string_of_type_definition = function
+and string_of_type_definition ind t =
+  match t with
   | DTypeDef (t, [], cs) ->
       "type " ^ t ^ " = " ^ 
-	(string_of_list string_of_constructor_definition " | " cs)
+	(string_of_list string_of_constructor_definition ("\n" ^ (fun_indent ind) ^ " | ") cs) ^ "\n\n"
   | DTypeDef (t, vs, cs) ->
       "type " ^ t ^ "[ " ^ (string_of_list (fun x -> x) ", " vs) ^ " ] = " ^ 
-	(string_of_list string_of_constructor_definition " | " cs)
+	(string_of_list string_of_constructor_definition ("\n" ^ (fun_indent ind) ^ " | ") cs) ^ "\n\n"
 
 and string_of_key_value = function
   | PKeyValue (p1, p2) ->
@@ -82,75 +99,80 @@ and string_of_pattern = function
       "{" ^ (string_of_list string_of_key_value ", " ks) ^ ", " ^ 
 	(string_of_pattern p) ^ "}"
 
-and string_of_filter = function
-  | Filter (p, e) -> 
-      "| " ^ (string_of_pattern p) ^ " => " ^ (string_of_expression e)
+and string_of_filter ind f =
+  match f with
+    | Filter (p, e) -> 
+	(fun_indent ind) ^ "| " ^ (string_of_pattern p) ^ " => \n" ^ (string_of_expression (ind + 2) e)
 
-and string_of_var_definition v =
+and string_of_var_definition ind v =
   match v with
-    | DVar (a, e) -> 
-	"def " ^ (string_of_annotated_variable a) ^ " = " ^ 
-	  (string_of_expression e)
+    | DVar (a, e) ->
+	(fun_indent ind) ^ "def " ^ (string_of_annotated_variable a) ^ " = \n" ^ 
+	  (string_of_expression (ind + 1) e) ^ "\n\n"
     | DVars (avs, d, vs) ->  
-	"def " ^ (string_of_list string_of_annotated_variable ", " avs) ^ 
-	  " = let ( " ^ (string_of_def_local d) ^ " ) {" ^ 
-	  (string_of_list string_of_variable ", " vs) ^ "} "
+	(fun_indent ind) ^ "def " ^ (string_of_list string_of_annotated_variable ", " avs) ^ 
+	  " = \n " ^ (fun_indent (ind + 1)) ^ "let ( " ^ (string_of_def_local d) ^ " ) {\n" ^ 
+	 (fun_indent (ind + 2)) ^ (string_of_list string_of_variable ", " vs) ^ "\n" ^ (fun_indent (ind + 1)) ^"}\n\n"
     | DFun (v, [], aps, a, e) ->
-	"def " ^ v ^ " ( " ^ 
+	(fun_indent ind) ^ "def " ^ v ^ " ( " ^ 
 	  (string_of_list string_of_annotated_parameter ", " aps) ^ " ) : " ^ 
-	  (string_of_atyp a) ^ " = " ^ (string_of_expression e)
+	  (string_of_atyp a) ^ " = \n" ^ (string_of_expression (ind + 1) e) ^ "\n\n"
     | DFun (v, vs, aps, a, e) ->
-	"def " ^ v ^ " [" ^ (string_of_list (fun x -> x) ", " vs) ^ "] ( " ^ 
+	(fun_indent ind) ^ "def " ^ v ^ " [" ^ (string_of_list (fun x -> x) ", " vs) ^ "] ( " ^ 
 	  (string_of_list string_of_annotated_parameter ", " aps) ^ " ) : " ^ 
-	  (string_of_atyp a) ^ " = " ^ (string_of_expression e)
+	  (string_of_atyp a) ^ " = \n" ^ (string_of_expression (ind + 1) e) ^ "\n\n"
 	
 and string_of_def_local (DLocal d) =
   let string_couple (a, e) =
-    (string_of_annotated_variable a) ^ " = " ^ (string_of_expression e)
+    (string_of_annotated_variable a) ^ " = " ^ (string_of_expression 0 e)
   in
   (string_of_list string_couple ", " d)
 
-and string_of_expression = function
-    | EVar v -> v
+and string_of_expression ind e =
+  match e with
+    | EVar v -> (fun_indent ind) ^ v
     | EConstant (s, ats, es) -> 
-	s ^ (if (List.length ats) = 0 
+	(fun_indent ind) ^ s ^ (if (List.length ats) = 0 
 	     then "" 
 	     else "[" ^ (string_of_list string_of_atyp ", " ats) ^ "]" ) ^ 
 	  (if (List.length es) = 0 
 	   then "" 
-	   else " ( " ^ (string_of_list string_of_expression ", " es) ^ " ) ")
-    | EKeyValue (e1, e2) -> "Partie expérimentale à Jerem" ^ 
-	(string_of_expression e1) ^ (string_of_expression e2)
-    | EMap (es, a) -> "Partie expérimentale à Jerem" ^ 
-	(string_of_list string_of_expression ", " es) ^ (string_of_atyp a)
-    | ELet (a, e1, e2) -> "let (" ^ (string_of_annotated_variable a)^" = " ^ 
-	(string_of_expression e1) ^ " ) { " ^ (string_of_expression e2) ^ " }"
+	   else " ( " ^ (string_of_list (string_of_expression 0) ", " es) ^ " ) ")
+    | EKeyValue (e1, e2) -> (fun_indent ind) ^ "Partie expérimentale à Jerem" ^ 
+	(string_of_expression 0 e1) ^ (string_of_expression 0 e2)
+    | EMap (es, a) -> (fun_indent ind) ^ "Partie expérimentale à Jerem" ^ 
+	(string_of_list (string_of_expression 0) ", " es) ^ (string_of_atyp a)
+    | ELet (a, e1, e2) -> (fun_indent ind) ^ "let (" ^ (string_of_annotated_variable a) ^ " = " ^ 
+	(string_of_expression 0 e1) ^ " ) {\n"
+	^ (string_of_expression (ind + 1) e2) ^ "\n"
+	^ (fun_indent ind) ^ "}"
     | ELambda (ats, ap, at, e) -> 
-	"fun " ^ (if (List.length ats) = 0 
+	(fun_indent ind) ^ "fun " ^ (if (List.length ats) = 0 
 		  then "" 
 		  else "[" ^ (string_of_list string_of_atyp ", " ats) ^ "]") ^ 
 	  " ( " ^ (string_of_annotated_parameter ap) ^ " ) " ^ " : " ^ 
-	  (string_of_atyp at) ^ " => " ^ (string_of_expression e)
+	  (string_of_atyp at) ^ " => " ^ (string_of_expression 0 e)
     | ECall (s, ats, es) -> 
-	s ^ (if (List.length ats) = 0 
+	(fun_indent ind) ^ s ^ (if (List.length ats) = 0 
 	     then "" 
 	     else "[" ^ (string_of_list string_of_atyp "," ats) ^ "]") ^ 
-	  " ( " ^ (string_of_list string_of_expression ", " es) ^ " ) "
-    | ECase (es, fs) -> "case " ^ 
-	(string_of_list string_of_expression ", " es) ^ " {\n" ^ 
-	  (string_of_list string_of_filter "\n" fs) ^ "}"
-    | EAnnotation (e, a) -> 
-	(string_of_expression e) ^ " : " ^ (string_of_atyp a)
+	  " ( " ^ (string_of_list (string_of_expression 0) ", " es) ^ " ) "
+    | ECase (es, fs) -> (fun_indent ind) ^ "case " ^ 
+	(string_of_list (string_of_expression 0) ", " es) ^ " {\n" ^ 
+	  (string_of_list (string_of_filter (ind + 1)) "\n" fs)
+	^ "\n" ^ (fun_indent ind) ^ "}"
+    | EAnnotation (e, a) ->
+	(fun_indent ind) ^ (string_of_expression 0 e) ^ " : " ^ (string_of_atyp a)
 
 and string_of_fsafe f =
   let s1 = 
     List.fold_left 
-      (fun acc t -> acc ^ (string_of_type_definition t)) "" f.types
+      (fun acc t -> acc ^ (string_of_type_definition 1 t)) "\n" f.types
   and s2 = 
     List.fold_left 
-      (fun acc v -> acc ^ (string_of_var_definition v)) "" f.globals
+      (fun acc v -> acc ^ (string_of_var_definition 0 v)) "\n" f.globals
   and s3 = 
     List.fold_left 
-      (fun acc e -> acc ^ (string_of_expression e)) "" f.entry
+      (fun acc e -> acc ^ (string_of_expression 0 e) ^ "\n") "\n" f.entry
   in
-    s1^"\n"^s2^"\n"^s3^"\n"
+    typetag ^ s1 ^ "\n\n" ^ vartag ^ s2 ^ "\n\n" ^ exprtag ^ s3 ^ "\n\n"
