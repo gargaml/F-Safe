@@ -27,31 +27,35 @@ open Fsafe
 let string_of_type _ = 
   "..."
 
-let string_of_expression e =
+let string_of_expression i e =
   let rec f e =
     match e with
-      | EConstant(_, _, es) -> sprintf "...%s...\n"
-	(List.fold_left (fun acc e -> acc ^ (f e)) "" es)
-      | ELet(_, a, b) -> sprintf "...%s...%s...\n" (f a) (f b)
-      | ECall(fn, _, es) -> sprintf "(\"%s\" call)\n%s" fn
-	(List.fold_left (fun acc e -> acc ^ (f e)) "" es)
-      | ECase(es, fs) -> sprintf "...%s...%s...\n"
-	(List.fold_left (fun acc e -> acc ^ (f e)) "" es)
-	(List.fold_left (fun acc (Filter(_,e)) -> acc ^ (f e)) "" fs)
-      | _ -> ""
-  in f e
+      | EConstant(_, _, es) ->
+	List.fold_left (fun acc e -> acc @ (f e)) [] es
+      | ELet(_, a, b) -> (f a) @ (f b)
+      | ECall(fn, _, es) ->
+	fn :: (List.fold_left (fun acc e -> acc @ (f e)) [] es)
+      | ECase(es, fs) ->
+	(List.fold_left (fun acc e -> acc @ (f e)) [] es)
+	@ (List.fold_left (fun acc (Filter(_,e)) -> acc @ (f e)) [] fs)
+      | _ -> []
+  in let fs = f e in
+     match fs with
+       | [] -> sprintf "%s..." i
+       | _ -> sprintf "\n%s...\n%s%s%s..."
+	 i i (string_of_list (fun x -> sprintf "%s(...)\n" x) (sprintf "%s...\n%s" i i) fs) i
 
 let string_of_global g =
   match g with
-    | DFun(f, vs, _, _, e) ->
+    | DFun(f, _, vs, _, e) ->
       sprintf "def %s(%s) = %s\n" f
-	(string_of_list (fun x -> x) "," vs)
-	(string_of_expression e)
+	(string_of_list (fun (APar(x,_)) -> x) "," vs)
+	(string_of_expression "    " e)
     | _ -> "...\n"
 
 let string_of_fsafe fsafe =
   sprintf "/* Types */\n%s\n\n/* Vars */\n%s\n\n/* Expressions */\n%s\n\n"
     (string_of_list string_of_type "\n" fsafe.types)
     (string_of_list string_of_global "\n" fsafe.globals)
-    (string_of_list string_of_expression "\n" fsafe.entry)
+    (string_of_list (string_of_expression "") "\n" fsafe.entry)
 
