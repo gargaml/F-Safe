@@ -22,69 +22,57 @@
 
 type variable = string
 
-type type_variable = string
+type parameter = string
 
 type data_constructor = string
 
 type type_constructor = string
 
-type ptyp =
-  | Tvar of variable
-  | Tarrow of ptyp * ptyp
-  | Tparam of type_constructor * annotated_component list
+type type_variable = string
+
+type typed_variable = variable * atyp
+
+and typed_parameter = parameter * atyp
+
+and ptyp =
+  | TVar of type_variable
+  | TArrow of ptyp * ptyp
+  | TConApp of data_constructor * typed_variable list
 
 and atyp =
-  | Var of variable
+  | AVar of type_variable
   | AArrow of atyp * atyp
-  | AParam of type_constructor * atyp list
+  | AConApp of type_constructor * atyp list
 
-and annotated_variable =
-  | AVar of variable * atyp
-
-and annotated_parameter =
-  | APar of variable * atyp
-
-and annotated_component =
-  | ACom of variable * ptyp
-
-type constructor_definition =
-  | DConstructor of data_constructor * annotated_component list 
-    
 type type_definition = 
-  | DTypeDef of type_constructor * variable list * constructor_definition list
+  | TDef of type_constructor * type_variable list * ptyp list
 
-type key_value =
-  | PKeyValue of pattern * pattern
+type global_definition =
+  | GDef of typed_variable * typed_expression
 
 and pattern =
-  | PVar of variable * atyp
-  | PCons of data_constructor * atyp list * pattern list
-  | PEmptyMap of data_constructor * atyp
-  | PMap of key_value list * pattern
-      
-type filter = Filter of pattern * expression
+  | Pattern of filter list * typed_expression
+
+and filter =
+  | PConApp of data_constructor * type_variable list * filter list
+  | PVar of typed_variable
 
 and expression = 
-  | EVar of string
-  | EConstant of string * atyp list * expression list
-  | EKeyValue of expression * expression
-  | ELet of annotated_variable * expression * expression
-  | ELambda of atyp list * annotated_parameter * atyp * expression
-  | ECall of string * atyp list * expression list
-  | ECase of expression list * filter list
-  | EMap of expression list * atyp
-  | EAnnotation of expression * atyp
+  | EVar of variable
+  | EConApp of data_constructor * type_variable list * typed_expression list
+  | ELet of typed_variable list * typed_expression list * typed_expression
+  | ELetRec of typed_variable list * typed_expression list * typed_expression
+  | EAbs of type_variable list * typed_parameter list * typed_expression
+  | EApp of variable * atyp list * typed_expression list
+  | ECase of typed_expression list * pattern list
 
-type def_local = DLocal of (annotated_variable * expression) list 
-
-type var_definition =
-  | DVar of annotated_variable * expression
-  | DVars of annotated_variable list * def_local * variable list
-  | DFun of variable * variable list * annotated_parameter list * atyp * expression
+and typed_expression = { e : expression;
+			 t : atyp }
 
 type fsafe =
     {
       types   : type_definition list;
-      globals : var_definition list;
-      entry   : expression list
+      globals : global_definition list;
+      entry   : typed_expression list
     }
+ 
