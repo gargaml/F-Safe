@@ -13,6 +13,8 @@ handler.cmo: wftype.cmo typechecker.cmo termination.cmo pprinter.cmo \
     parser.cmi lexer.cmo interpret.cmo fsafe.cmo config.cmo
 handler.cmx: wftype.cmx typechecker.cmx termination.cmx pprinter.cmx \
     parser.cmx lexer.cmx interpret.cmx fsafe.cmx config.cmx
+interpret.cmo:
+interpret.cmx:
 lexer.cmo: parser.cmi
 lexer.cmx: parser.cmx
 main.cmo: handler.cmo config.cmo
@@ -23,10 +25,12 @@ pprinter.cmo: utils.cmo fsafe.cmo
 pprinter.cmx: utils.cmx fsafe.cmx
 relationmatrix.cmo:
 relationmatrix.cmx:
-termination.cmo: relationmatrix.cmo fsafe.cmo config.cmo callgraph.cmo
-termination.cmx: relationmatrix.cmx fsafe.cmx config.cmx callgraph.cmx
-typechecker.cmo:
-typechecker.cmx:
+termination.cmo: relationmatrix.cmo fsafe.cmo cycle.cmo config.cmo \
+    callgraph.cmo
+termination.cmx: relationmatrix.cmx fsafe.cmx cycle.cmx config.cmx \
+    callgraph.cmx
+typechecker.cmo: wftype.cmo fsafe.cmo
+typechecker.cmx: wftype.cmx fsafe.cmx
 utils.cmo:
 utils.cmx:
 wftype.cmo: fsafe.cmo

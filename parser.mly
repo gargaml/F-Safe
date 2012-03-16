@@ -49,7 +49,9 @@ fsafe:
 program :
   |
       { [] }
-  | e = expression es = expressions
+  | e = expression
+      { [e] }				    
+  | e = expression COMMA es = program
       { e :: es }
 
 annotation:
