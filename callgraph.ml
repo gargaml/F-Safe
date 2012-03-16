@@ -138,7 +138,7 @@ let build_callgraph fsafe fs =
   let build f =
     let vd = List.hd (List.filter (fun x ->
       match x with
-	| GDef(v, _) when v = f -> true
+	| GDef((v,_), _) when v = f -> true
 	| _ -> false) fsafe.globals) in
     match vd with
       | GDef(_,e) ->
@@ -150,8 +150,8 @@ let build_callgraph fsafe fs =
 	end
       | _ -> []
   in
-  List.fold_left (fun acc (f,a) ->
-    let edges = build (f,a) in
+  List.fold_left (fun acc f ->
+    let edges = build f in
     CallGraph.add f edges acc) CallGraph.empty fs
     
 
