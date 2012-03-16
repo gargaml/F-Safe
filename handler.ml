@@ -97,4 +97,5 @@ let handle filename =
 
     close_files ()
   with
+    | Typechecker.TypingException s -> failwith s
     | x -> close_files (); raise x
