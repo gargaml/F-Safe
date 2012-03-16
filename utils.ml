@@ -28,3 +28,10 @@ let string_of_list fn sep lst =
       | h::[] -> fn h
       | h::t -> (fn h) ^ sep ^ (f t)
   in f lst
+
+let fcount = ref 0
+
+let fresh () =
+  fcount := !fcount + 1;
+  "v" ^ (string_of_int !fcount)
+
