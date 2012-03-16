@@ -19,7 +19,7 @@
 (* Description : fsafe interpreter                                           *)
 (*                                                                           *)
 (*****************************************************************************)
-open Fsafe
+(*open Fsafe
 open Printf
 
 module Env = Map.Make(
@@ -112,14 +112,14 @@ let compare_pattern pattern exprs
       | PCons (cons, a_typs, pats)::patterns->
 
 
-(* interpret : ?? -> ?? *)
 let interpret ast =
   let env = List.fold_left env_cons Env.empty ast.globals in
   let exps = List.fold_left (eval_exprs env) [] ast.entry in
   exp_to_string exps
+*)
 
-
-
+let interpret ast = 
+  ()
 
 
 
