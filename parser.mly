@@ -43,16 +43,8 @@
 %%
 
 fsafe:
-  | t = type_definitions d = global_definitions p = program EOF
+  | t = type_definitions d = global_definitions p = expressions EOF
       { { types = t; globals = d; entry = p } }
-
-program :
-  |
-      { [] }
-  | e = expression
-      { [e] }				    
-  | e = expression COMMA es = program
-      { e :: es }
 
 annotation:
   | i = MAJIDENT
@@ -153,6 +145,8 @@ global_definition:
 (* expressions return a list of typed_expressions *)
 
 expressions:
+  |
+      { [] }
   | e = expression
       { [e] }
   | e = expression COMMA es = expressions
