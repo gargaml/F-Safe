@@ -25,7 +25,7 @@ open Config
 open Fsafe
 open Callgraph
 open Relationmatrix
-
+open Cycle
 module SSet = Set.Make(String)
 
 let diagonal_check matrix =
@@ -41,15 +41,29 @@ let diagonal_check matrix =
     done;
     !ok
 
-let is_terminating cg s f =
-  let edges = CallGraph.find f cg in
-  List.fold_left (fun b (g, _, _, m) ->
-    b && (
-      if String.compare f g = 0 then
-	diagonal_check m
-      else
-	SSet.mem g s
-    )) true edges
+
+let rec is_terminating cycles =
+  let check_cycle cycle =
+    let rec process_matrice cycle base_matrice = 
+      match cycle with 
+	| [] -> failwith "should not be empty"
+	| [(_,(_,_,_,matrice))] -> multiplication base_matrice matrice
+	| (_,(_,_,_,matrice)) :: rest
+	  -> process_matrice  rest (multiplication base_matrice matrice) 
+    in
+    match cycle with
+      | [] -> true
+      | [(_,(_,_,_,matrice))] -> diagonal_check matrice
+      | (_,(_,_,_,matrice)) :: rest -> 
+	diagonal_check (process_matrice rest matrice)
+  in
+  match cycles with 
+    | [] -> true
+    | cycle :: rest  -> if (check_cycle cycle) 
+      then is_terminating rest 
+      else false
+
+
 
 (* termination_check : ?? -> ?? *)
 let termination_check fsafe =
@@ -67,17 +81,13 @@ let termination_check fsafe =
   );
   
   (* TODO : cycles detection *)
+  if  !verbose then printf "   *** Processing cycles...\n";
+  let cycles = get_all_cycles g functions in 
+  if !debug_on then (
+    printf "here are the cycles in your program :\n%s" (string_of_cycles cycles );
+
+  );
   (* TODO : graph completion *)
-  
-  let count = ref (-1) in
-  let prev = ref 0 in
-  let s = ref SSet.empty in
-  while !count != !prev do
-    let tf = List.filter (is_terminating g !s) functions in
-    s := List.fold_left (fun s x -> SSet.add x s) !s tf;
-    prev := !count;
-    count := SSet.cardinal !s;
-  done;
-  
-  List.map (fun x -> (x, SSet.mem x !s)) functions
+ 
+ List.map (fun (fname,cycle) -> (fname,is_terminating cycle)) cycles
   
