@@ -1,0 +1,35 @@
+parser.cmi: fsafe.cmo
+callgraph.cmo: utils.cmo relationmatrix.cmo fsafe.cmo
+callgraph.cmx: utils.cmx relationmatrix.cmx fsafe.cmx
+config.cmo:
+config.cmx:
+cycle.cmo: relationmatrix.cmo callgraph.cmo
+cycle.cmx: relationmatrix.cmx callgraph.cmx
+debug.cmo: config.cmo
+debug.cmx: config.cmx
+fsafe.cmo:
+fsafe.cmx:
+handler.cmo: wftype.cmo typechecker.cmo termination.cmo pprinter.cmo \
+    parser.cmi lexer.cmo interpret.cmo fsafe.cmo config.cmo
+handler.cmx: wftype.cmx typechecker.cmx termination.cmx pprinter.cmx \
+    parser.cmx lexer.cmx interpret.cmx fsafe.cmx config.cmx
+interpret.cmo:
+interpret.cmx:
+lexer.cmo: parser.cmi
+lexer.cmx: parser.cmx
+main.cmo: handler.cmo config.cmo
+main.cmx: handler.cmx config.cmx
+parser.cmo: utils.cmo fsafe.cmo parser.cmi
+parser.cmx: utils.cmx fsafe.cmx parser.cmi
+pprinter.cmo: utils.cmo fsafe.cmo
+pprinter.cmx: utils.cmx fsafe.cmx
+relationmatrix.cmo:
+relationmatrix.cmx:
+termination.cmo: relationmatrix.cmo fsafe.cmo config.cmo callgraph.cmo
+termination.cmx: relationmatrix.cmx fsafe.cmx config.cmx callgraph.cmx
+typechecker.cmo:
+typechecker.cmx:
+utils.cmo:
+utils.cmx:
+wftype.cmo: fsafe.cmo
+wftype.cmx: fsafe.cmx
