@@ -23,7 +23,7 @@
 open Utils
 open Fsafe
 
-let ident = "  "
+(*let ident = "  "
 
 let idtcpt = ref 0
 
@@ -176,3 +176,6 @@ and string_of_fsafe f =
       (fun acc e -> acc ^ (string_of_expression 0 e) ^ "\n") "\n" f.entry
   in
     typetag ^ s1 ^ "\n\n" ^ vartag ^ s2 ^ "\n\n" ^ exprtag ^ s3 ^ "\n\n"
+*)
+
+let string_of_fsafe f = ""
