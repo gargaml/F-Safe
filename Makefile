@@ -41,6 +41,9 @@ WITHDBM =dbm.cma -cclib -lmldbm -cclib -lndbm
 
 all: depend $(EXEC)
 
+graph: callgraph.dot
+	dot callgraph.dot -Tpdf > callgraph.pdf
+
 opt : $(EXEC).opt
 
 SOURCES1 = $(SOURCES:.mly=.ml)

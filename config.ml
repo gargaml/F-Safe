@@ -30,5 +30,4 @@ let verbose = ref false
 let interpretor_on = ref false
 
 (* termination mode *)
-let terminator_on = ref false
-
+let terminator_on = ref true

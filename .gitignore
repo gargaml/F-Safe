@@ -6,3 +6,5 @@ _build
 *.cmo
 .depend
 fsafe
+callgraph.dot
+callgraph.pdf
