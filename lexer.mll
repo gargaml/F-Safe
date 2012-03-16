@@ -68,9 +68,7 @@ rule token = parse
   | rbracket { RBRACKET }
   | lbrace { LBRACE }
   | rbrace { RBRACE }
-
   | tlet { LET }
-  | undefined { UNDEFINED }
   | comma { COMMA }
   | colon { COLON }
   | arrow { ARROW }
@@ -78,7 +76,6 @@ rule token = parse
   | equal { EQUAL }
   | joker { JOKER }
   | ttype { TYPE }
-  | tand { AND }
   | case { CASE }
   | def { DEF }
   | anonfun { FUN }

@@ -23,8 +23,7 @@
 open Printf
 open Config
 
-let dmsg x = match debug_on with
-| true  -> printf "%s\n" x;
-| false -> ()
-;;
+let dmsg x =
+  if !debug_on then
+    printf "%s\n" x;
 
