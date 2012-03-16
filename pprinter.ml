@@ -20,42 +20,159 @@
 (*                                                                           *)
 (*****************************************************************************)
 
-open Printf
 open Utils
 open Fsafe
 
-let string_of_type _ = 
-  "..."
+let ident = "  "
 
-let string_of_expression i e =
-  let rec f e =
-    match e with
-      | EConstant(_, _, es) ->
-	List.fold_left (fun acc e -> acc @ (f e)) [] es
-      | ELet(_, a, b) -> (f a) @ (f b)
-      | ECall(fn, _, es) ->
-	fn :: (List.fold_left (fun acc e -> acc @ (f e)) [] es)
-      | ECase(es, fs) ->
-	(List.fold_left (fun acc e -> acc @ (f e)) [] es)
-	@ (List.fold_left (fun acc (Filter(_,e)) -> acc @ (f e)) [] fs)
-      | _ -> []
-  in let fs = f e in
-     match fs with
-       | [] -> sprintf "%s..." i
-       | _ -> sprintf "\n%s...\n%s%s%s..."
-	 i i (string_of_list (fun x -> sprintf "%s(...)\n" x) (sprintf "%s...\n%s" i i) fs) i
+let idtcpt = ref 0
 
-let string_of_global g =
-  match g with
-    | DFun(f, _, vs, _, e) ->
-      sprintf "def %s(%s) = %s\n" f
-	(string_of_list (fun (APar(x,_)) -> x) "," vs)
-	(string_of_expression "    " e)
-    | _ -> "...\n"
+let vartag = "/************************************************/\n" ^ 
+"/*                Vars Defs                     */\n" ^ 
+"/************************************************/\n"
 
-let string_of_fsafe fsafe =
-  sprintf "/* Types */\n%s\n\n/* Vars */\n%s\n\n/* Expressions */\n%s\n\n"
-    (string_of_list string_of_type "\n" fsafe.types)
-    (string_of_list string_of_global "\n" fsafe.globals)
-    (string_of_list (string_of_expression "") "\n" fsafe.entry)
+let typetag = "/************************************************/\n" ^ 
+"/*                Types Defs                    */\n" ^
+"/************************************************/\n"
 
+let exprtag = "/************************************************/\n" ^ 
+"/*                Expressions                   */\n" ^ 
+"/************************************************/\n"
+
+let string_of_variable = function s -> s
+let string_of_type_variable = function s -> s
+let string_of_data_constructor = function s -> s
+let string_of_type_constructor = function s -> s
+
+let rec string_of_ptyp = function
+  | Tvar v -> string_of_variable v
+  | Tarrow (p1, p2) -> (string_of_ptyp p1) ^ " -> " ^ (string_of_ptyp p2)
+  | Tparam (t, []) -> t
+  | Tparam (t, acs) -> 
+      t ^ "[" ^ (string_of_list string_of_annotated_component ", " acs) ^ "]"
+
+and string_of_atyp = function
+  | Var (v) -> v
+  | AArrow (a1, a2) -> (string_of_atyp a1) ^ " -> " ^ (string_of_atyp a2)
+  | AParam (t, []) -> t
+  | AParam (t, ats) -> t ^ "[" ^ (string_of_list string_of_atyp ", " ats) ^ "]"
+
+and string_of_annotated_variable = function
+  | AVar (v, a) -> v ^ " : " ^ (string_of_atyp a)
+
+and string_of_annotated_parameter = function
+  | APar (v, a) -> v ^ " : " ^ (string_of_atyp a)
+
+and string_of_annotated_component = function
+  | ACom (v, p) -> v ^ " : " ^ (string_of_ptyp p)
+
+and string_of_constructor_definition = function
+  | DConstructor (d, []) -> d 
+  | DConstructor (d, acs) ->
+      d ^ " ( " ^(string_of_list string_of_annotated_component ", " acs)^ " ) "
+
+and string_of_type_definition ind t =
+  match t with
+  | DTypeDef (t, [], cs) ->
+      "type " ^ t ^ " = " ^ 
+	(string_of_list string_of_constructor_definition ("\n" ^ (fun_indent ind) ^ " | ") cs) ^ "\n\n"
+  | DTypeDef (t, vs, cs) ->
+      "type " ^ t ^ "[ " ^ (string_of_list (fun x -> x) ", " vs) ^ " ] = " ^ 
+	(string_of_list string_of_constructor_definition ("\n" ^ (fun_indent ind) ^ " | ") cs) ^ "\n\n"
+
+and string_of_key_value = function
+  | PKeyValue (p1, p2) ->
+      " ( " ^ (string_of_pattern p1) ^ ", " ^ (string_of_pattern p2) ^ " ) "
+
+and string_of_pattern = function
+  | PVar (v, a) -> v ^ " : " ^ (string_of_atyp a)
+  | PCons (d, [], []) -> d  
+  | PCons (d, [], ps) ->
+      d ^ " ( " ^ (string_of_list string_of_pattern ", " ps) ^ " ) "
+  | PCons (d, ats, []) ->
+      d ^ " [" ^ (string_of_list string_of_atyp ", " ats) ^ "]"
+  | PCons (d, ats, ps) ->
+      d ^ " [" ^ (string_of_list string_of_atyp ", " ats) ^ "]" ^ 
+	(string_of_list string_of_pattern ", " ps)
+  | PEmptyMap (d, a) -> d ^ "[ " ^ (string_of_atyp a) ^ " ]"
+  | PMap (ks, p) ->
+      "{" ^ (string_of_list string_of_key_value ", " ks) ^ ", " ^ 
+	(string_of_pattern p) ^ "}"
+
+and string_of_filter ind f =
+  match f with
+    | Filter (p, e) -> 
+	(fun_indent ind) ^ "| " ^ (string_of_pattern p) ^ " => \n" ^ (string_of_expression (ind + 2) e)
+
+and string_of_var_definition ind v =
+  match v with
+    | DVar (a, e) ->
+	(fun_indent ind) ^ "def " ^ (string_of_annotated_variable a) ^ " = \n" ^ 
+	  (string_of_expression (ind + 1) e) ^ "\n\n"
+    | DVars (avs, d, vs) ->  
+	(fun_indent ind) ^ "def " ^ (string_of_list string_of_annotated_variable ", " avs) ^ 
+	  " = \n " ^ (fun_indent (ind + 1)) ^ "let ( " ^ (string_of_def_local d) ^ " ) {\n" ^ 
+	 (fun_indent (ind + 2)) ^ (string_of_list string_of_variable ", " vs) ^ "\n" ^ (fun_indent (ind + 1)) ^"}\n\n"
+    | DFun (v, [], aps, a, e) ->
+	(fun_indent ind) ^ "def " ^ v ^ " ( " ^ 
+	  (string_of_list string_of_annotated_parameter ", " aps) ^ " ) : " ^ 
+	  (string_of_atyp a) ^ " = \n" ^ (string_of_expression (ind + 1) e) ^ "\n\n"
+    | DFun (v, vs, aps, a, e) ->
+	(fun_indent ind) ^ "def " ^ v ^ " [" ^ (string_of_list (fun x -> x) ", " vs) ^ "] ( " ^ 
+	  (string_of_list string_of_annotated_parameter ", " aps) ^ " ) : " ^ 
+	  (string_of_atyp a) ^ " = \n" ^ (string_of_expression (ind + 1) e) ^ "\n\n"
+	
+and string_of_def_local (DLocal d) =
+  let string_couple (a, e) =
+    (string_of_annotated_variable a) ^ " = " ^ (string_of_expression 0 e)
+  in
+  (string_of_list string_couple ", " d)
+
+and string_of_expression ind e =
+  match e with
+    | EVar v -> (fun_indent ind) ^ v
+    | EConstant (s, ats, es) -> 
+	(fun_indent ind) ^ s ^ (if (List.length ats) = 0 
+	     then "" 
+	     else "[" ^ (string_of_list string_of_atyp ", " ats) ^ "]" ) ^ 
+	  (if (List.length es) = 0 
+	   then "" 
+	   else " ( " ^ (string_of_list (string_of_expression 0) ", " es) ^ " ) ")
+    | EKeyValue (e1, e2) -> (fun_indent ind) ^ "Partie expérimentale à Jerem" ^ 
+	(string_of_expression 0 e1) ^ (string_of_expression 0 e2)
+    | EMap (es, a) -> (fun_indent ind) ^ "Partie expérimentale à Jerem" ^ 
+	(string_of_list (string_of_expression 0) ", " es) ^ (string_of_atyp a)
+    | ELet (a, e1, e2) -> (fun_indent ind) ^ "let (" ^ (string_of_annotated_variable a) ^ " = " ^ 
+	(string_of_expression 0 e1) ^ " ) {\n"
+	^ (string_of_expression (ind + 1) e2) ^ "\n"
+	^ (fun_indent ind) ^ "}"
+    | ELambda (ats, ap, at, e) -> 
+	(fun_indent ind) ^ "fun " ^ (if (List.length ats) = 0 
+		  then "" 
+		  else "[" ^ (string_of_list string_of_atyp ", " ats) ^ "]") ^ 
+	  " ( " ^ (string_of_annotated_parameter ap) ^ " ) " ^ " : " ^ 
+	  (string_of_atyp at) ^ " => " ^ (string_of_expression 0 e)
+    | ECall (s, ats, es) -> 
+	(fun_indent ind) ^ s ^ (if (List.length ats) = 0 
+	     then "" 
+	     else "[" ^ (string_of_list string_of_atyp "," ats) ^ "]") ^ 
+	  " ( " ^ (string_of_list (string_of_expression 0) ", " es) ^ " ) "
+    | ECase (es, fs) -> (fun_indent ind) ^ "case " ^ 
+	(string_of_list (string_of_expression 0) ", " es) ^ " {\n" ^ 
+	  (string_of_list (string_of_filter (ind + 1)) "\n" fs)
+	^ "\n" ^ (fun_indent ind) ^ "}"
+    | EAnnotation (e, a) ->
+	(fun_indent ind) ^ (string_of_expression 0 e) ^ " : " ^ (string_of_atyp a)
+
+and string_of_fsafe f =
+  let s1 = 
+    List.fold_left 
+      (fun acc t -> acc ^ (string_of_type_definition 1 t)) "\n" f.types
+  and s2 = 
+    List.fold_left 
+      (fun acc v -> acc ^ (string_of_var_definition 0 v)) "\n" f.globals
+  and s3 = 
+    List.fold_left 
+      (fun acc e -> acc ^ (string_of_expression 0 e) ^ "\n") "\n" f.entry
+  in
+    typetag ^ s1 ^ "\n\n" ^ vartag ^ s2 ^ "\n\n" ^ exprtag ^ s3 ^ "\n\n"
