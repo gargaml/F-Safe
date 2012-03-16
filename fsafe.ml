@@ -61,7 +61,7 @@ and filter =
 and expression = 
   | EVar of variable
   | EConApp of data_constructor * atyp list * typed_expression list
-  | ELet of (typed_variable * typed_expression) list * typed_expression
+  | ELet of (typed_variable * typed_expression) list * typed_expression list
   | EAbs of type_variable list * typed_parameter list * typed_expression
   | EApp of variable * atyp list * typed_expression list
   | ECase of typed_expression list * pattern list
