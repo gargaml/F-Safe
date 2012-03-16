@@ -20,8 +20,9 @@
 (*                                                                           *)
 (*****************************************************************************)
 
-(* typecheck : ?? -> ?? *)
-let typecheck ast =
-  ignore (ast);
-  failwith "Not yet implemented"
+open Fsafe
 
+let typecheck { types = ts ; globals = gs ; entry = es } dcenv =
+  { types = ts ; globals = gs ; entry = es }
+  
+  
