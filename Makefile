@@ -28,7 +28,7 @@ CAMLDEP = ocamldep
 CAMLLEX = ocamllex
 CAMLYACC = menhir
 
-LIBS=$(WITHGRAPHICS)
+LIBS=
 CUSTOM=-custom
 
 WITHGRAPHICS =graphics.cma -cclib -lgraphics -cclib -L/usr/X11R6/lib -cclib -lX11
