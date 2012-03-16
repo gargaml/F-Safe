@@ -39,7 +39,7 @@ let undefined = "undefined"
 let letloc = "letloc"
 
 let typearrow = "->"
-let anonvar = "_"
+let joker = "_"
 let arrow = "=>"
 let lparen = '('
 let rparen = ')'
@@ -76,7 +76,7 @@ rule token = parse
   | arrow { ARROW }
   | pipe { PIPE }
   | equal { EQUAL }
-  | anonvar { ANONVAR }
+  | joker { JOKER }
   | ttype { TYPE }
   | tand { AND }
   | case { CASE }
