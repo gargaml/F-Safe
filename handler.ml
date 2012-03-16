@@ -32,7 +32,6 @@ open Typechecker
 open Termination
 open Wftype
 
-
 (* parse : Lexing.lexbuf -> ?? *)
 let parse lexbuf =
   try
@@ -51,13 +50,23 @@ let handle filename =
   let source = open_in filename in
   let close_files () = 
     close_in source in
-  
+
   try
+  
+    (* option def *)
+    let run_all = ref (!debug_on || !verbose) in
+    let interprete_on = ref (!run_all || !interpretor_on) in
+    let termination_on = ref (
+      !run_all 
+      || !terminator_on 
+      || not(!run_all) && not(!interprete_on)) in
+    
     (* parsing *)
     if !verbose then printf "*** Parsing...\n";
     let lexbuf = Lexing.from_channel source in
     let ast = parse lexbuf in
-    if !debug_on then print_string (string_of_fsafe ast);
+    
+    if !run_all then print_string (string_of_fsafe ast);
 
     (* well-formed type *)
     if !verbose then printf "*** Checking types well-formedness...\n";
@@ -77,15 +86,17 @@ let handle filename =
     
     (* termination checking *)
     if !verbose then printf "*** Termination checking...\n";
-    let results = termination_check ast in
-    printf "\n";
-    List.iter (fun (f,r) -> printf "%s Function \"%s\" %s termination check\n"
-      (if r then "[X]" else "[ ]")
-      f (if r then "passes" else "doesn't pass")) results;
-    
+    if !termination_on then
+      let results = termination_check ast in
+      printf "\n";
+      List.iter (fun (f,r) -> printf "%s Function \"%s\" %s termination check\n"
+		   (if r then "[X]" else "[ ]")
+		   f (if r then "passes" else "doesn't pass")) results;
+      
     (* interpreting *)
     (* Uncomment this code when interpreting is implemented
        if !verbose then printf "Interpreting...\n";
+       if !interprete_on then
        ignore (interpret ast);
     *)
 

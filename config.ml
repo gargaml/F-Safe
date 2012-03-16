@@ -21,7 +21,14 @@
 (*****************************************************************************)
 
 (* disable/enable debug messages *)
-let debug_on = ref true;;
+let debug_on = ref false;;
 
 (* verbose mode *)
-let verbose = ref true
+let verbose = ref false
+
+(* interpretation mode *)
+let interpretor_on = ref false
+
+(* termination mode *)
+let terminator_on = ref false
+
