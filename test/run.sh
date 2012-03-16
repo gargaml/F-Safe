@@ -15,3 +15,5 @@ do
     echo "Testing $f... "
     ./fsafe $f
 done;
+case  in
+    

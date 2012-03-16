@@ -85,16 +85,14 @@ let handle filename =
       let results = termination_check ast in
       printf "\n";
       List.iter (fun (f,r) -> printf "%s Function \"%s\" %s termination check\n"
-		   (if r then "[X]" else "[ ]")
-		   f (if r then "passes" else "doesn't pass")) results;
+	(if r then "[X]" else "[ ]")
+	f (if r then "passes" else "doesn't pass")) results;
       
-    (* interpreting *)
-    (* Uncomment this code when interpreting is implemented
-       if !verbose then printf "Interpreting...\n";
-       if !interprete_on then
-       ignore (interpret ast);
-    *)
-
+      (* interpreting *)
+(*      if !verbose then printf "Interpreting...\n";
+      if !interprete_on then
+	ignore (interpret ast);*)
+      
     close_files ()
   with
     | Typechecker.TypingException s -> failwith s
