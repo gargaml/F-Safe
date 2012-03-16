@@ -13,8 +13,8 @@ handler.cmo: wftype.cmo typechecker.cmo termination.cmo pprinter.cmo \
     parser.cmi lexer.cmo interpret.cmo fsafe.cmo config.cmo
 handler.cmx: wftype.cmx typechecker.cmx termination.cmx pprinter.cmx \
     parser.cmx lexer.cmx interpret.cmx fsafe.cmx config.cmx
-interpret.cmo:
-interpret.cmx:
+interpret.cmo: fsafe.cmo
+interpret.cmx: fsafe.cmx
 lexer.cmo: parser.cmi
 lexer.cmx: parser.cmx
 main.cmo: handler.cmo config.cmo
