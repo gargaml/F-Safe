@@ -39,6 +39,8 @@ let interpret file =
 let errmsg = "Options are :"
 let doc_verbose = "Set verbose mode"
 let doc_debug_on = "Set debug mode"
+let doc_interpretor = "Set interpretor mode"
+let doc_terminator = "Set terminator mode"
 
 (* entry point *)
 (* main : () -> () *)
@@ -48,6 +50,8 @@ let main () =
       [
 	"-v", Arg.Set verbose, doc_verbose;
 	"-d", Arg.Set debug_on, doc_debug_on;
+	"-i", Arg.Set interpretor_on, doc_interpretor;
+	"-t", Arg.Set terminator_on, doc_terminator;
       ]
       interpret
       errmsg;
