@@ -74,7 +74,7 @@ let rec look_for_call e =
 	(List.fold_left
 	   (fun acc (_,exp) -> (look_for_call exp)@acc) 
 	   [] a)
-	@ (look_for_call b)
+	@ (List.flatten(List.fold_left (fun acc b -> look_for_call b :: acc) [] b))
       | EApp(f, _, es) -> 
 	List.fold_left (fun acc e -> (look_for_call e)@acc) [f] es
       | ECase(es, fs) ->
@@ -91,7 +91,8 @@ let rec look_for_call' e t ip =
 	(List.fold_left
 	   (fun acc (_,exp) -> (look_for_call' exp t ip)@acc) 
 	   [] a)
-        @ (look_for_call' b t ip)
+	@ (List.flatten(List.fold_left (fun acc b-> look_for_call' b t ip :: acc) [] b))
+     
       | EApp(f, _, es) -> 
 	let op = List.map (fun e -> match e.e with
 	  | EVar s -> s
@@ -139,6 +140,12 @@ let build_callgraph fsafe fs =
     let vd = List.hd (List.filter (fun x ->
       match x with
 	| GDef((v,_), _) when v = f -> true
+	| GRecDef(v,_) -> 
+	  let rec find_recdef = function
+	    | [] -> false 
+	    | (v,_):: rest -> if v = f then true else find_recdef rest
+	  in
+	  find_recdef v
 	| _ -> false) fsafe.globals) in
     match vd with
       | GDef(_,e) ->
@@ -148,7 +155,12 @@ let build_callgraph fsafe fs =
 	     look_for_call' e tree (List.map (fun (v, _) -> v) ip)
 	  | _ -> []
 	end
-      | _ -> []
+      | GRecDef(v,e) ->[](*
+	match (e.e) with
+	  | ELet (vi,es) ->
+	    match (v,es) with 
+	      | (v::_,es *)
+  
   in
   List.fold_left (fun acc f ->
     let edges = build f in

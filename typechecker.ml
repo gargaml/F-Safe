@@ -23,7 +23,7 @@
 open Fsafe
 open Wftype
 
-exception TypingException
+exception TypingException of string
 
 (*let type_decorate ({ types = ts ; globals = gs ; entry = es } as ast) dcenv =
   let rec f env { e = e ; t = t } = 

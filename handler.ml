@@ -73,7 +73,7 @@ let handle filename =
 
     (* well-formed type *)
     if !verbose then printf "** Creating type schemes map...\n";
-    let dcenv = Wftype.create_tscheme_map ast in
+    let dcenv = Wftype.build_tscheme_map ast in
     
     (* type checking *)
     if !verbose then printf "Type checking...\n";
