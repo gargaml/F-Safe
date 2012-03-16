@@ -7,3 +7,6 @@ def add(x:nat, y:nat) : nat =
     }
 
 add(Succ(Succ(Zero)), Succ(Zero))
+
+
+Succ(Succ(Succ(Zero)))

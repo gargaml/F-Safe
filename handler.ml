@@ -84,11 +84,9 @@ let handle filename =
       f (if r then "passes" else "doesn't pass")) results;
     
     (* interpreting *)
-    (* Uncomment this code when interpreting is implemented
-       if !verbose then printf "Interpreting...\n";
-       ignore (interpret ast);
-    *)
-
+    if !verbose then printf "Interpreting...\n";
+    ignore (interpret ast);
+    
     close_files ()
   with
     | x -> close_files (); raise x

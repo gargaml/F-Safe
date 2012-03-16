@@ -66,7 +66,7 @@ type filter = Filter of pattern * expression
 
 and expression = 
   | EVar of string
-  | EConstant of string * atyp list * expression list
+  | EConstant of string * atyp list * expression listfailwith "interpret.env_cons"
   | EKeyValue of expression * expression
   | ELet of annotated_variable * expression * expression
   | ELambda of atyp list * annotated_parameter * atyp * expression
