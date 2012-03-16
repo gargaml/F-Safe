@@ -35,3 +35,13 @@ let fresh () =
   fcount := !fcount + 1;
   "v" ^ (string_of_int !fcount)
 
+let rec fun_indent i =
+  match i with
+    | 0 -> ""
+    | _ -> "  " ^ (fun_indent (i - 1))
+
+let rec suppr_indent i t =
+  match (i,t) with
+    | ( 0, _) -> t
+    | ( _, t) -> (suppr_indent (i - 1) (String.sub t 2 ((String.length t) - 2)))
+
