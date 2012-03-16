@@ -39,25 +39,11 @@ type out_param = string
 type edge = string * in_param list * out_param list * relationmatrix
 
 
-let rec inparamlist callingparams =
-  match callingparams with 
-      [] -> []
-    | APar (p,_) :: l ->  p :: (inparamlist l);;
-
-			
-let rec outparamlist x = 
-  match x with 
-    | [] -> []
-    | (EVar s) :: l -> s :: outparamlist l
-    | (EConstant (s,_, _)) :: l-> s :: outparamlist l
-    | _ -> failwith "not  a var or consant param in Callgraph.outparamlist"  
-
-
 type tree =
   | Node of string * tree list
 
 let init_tree ip =
-  Node("", (List.map (fun (APar(v, _)) -> Node(v, [])) ip))
+  Node("", (List.map (fun (v, _) -> Node(v, [])) ip))
 
 let rec add_child t x n =
   match t with
@@ -81,25 +67,34 @@ let get_relation t x n =
     in f t Unknown
 
 let rec look_for_call e =
-    match e with
-      | EConstant(_, _, es) ->
+    match e.e with
+      | EConApp(_, _, es) ->
 	List.fold_left (fun acc e -> (look_for_call e)@acc) [] es
-      | ELet(_, a, b) -> (look_for_call a) @ (look_for_call b)
-      | ECall(f, _, es) -> 
+      | ELet(a, b) -> 
+	(List.fold_left
+	   (fun acc (_,exp) -> (look_for_call exp)@acc) 
+	   [] a)
+	@ (List.flatten(List.fold_left (fun acc b -> look_for_call b :: acc) [] b))
+      | EApp(f, _, es) -> 
 	List.fold_left (fun acc e -> (look_for_call e)@acc) [f] es
       | ECase(es, fs) ->
 	(List.fold_left (fun acc e -> (look_for_call e)@acc) [] es)
 	  @ (List.fold_left
-	       (fun acc (Filter(_,e)) -> (look_for_call e)@acc) [] fs)
+	       (fun acc (Pattern(_,e)) -> (look_for_call e)@acc) [] fs)
       | _ -> []
 
 let rec look_for_call' e t ip =
-    match e with
-      | EConstant(_, _, es) ->
+    match e.e with
+      | EConApp(_, _, es) ->
 	List.fold_left (fun acc e -> (look_for_call' e t ip)@acc) [] es
-      | ELet(_, a, b) -> (look_for_call' a t ip) @ (look_for_call' b t ip)
-      | ECall(f, _, es) -> 
-	let op = List.map (fun e -> match e with
+      | ELet(a, b) ->
+	(List.fold_left
+	   (fun acc (_,exp) -> (look_for_call' exp t ip)@acc) 
+	   [] a)
+	@ (List.flatten(List.fold_left (fun acc b-> look_for_call' b t ip :: acc) [] b))
+     
+      | EApp(f, _, es) -> 
+	let op = List.map (fun e -> match e.e with
 	  | EVar s -> s
 	  | _ -> failwith "expression in call not supported") es in
 	let m = empty (List.length ip) (List.length op) in
@@ -113,33 +108,59 @@ let rec look_for_call' e t ip =
 	done;
 	[(f, ip, op, m)]
       | ECase(es, fs) ->
-	let p = match List.hd es with
+	let p = match (List.hd es).e with
 	  | EVar s -> s
 	  | _ -> failwith "expression in match not supported" in
-	let cs = List.fold_left (fun acc (Filter(p,_)) -> 
-	  match p with
-	    | PCons(_, _, ls) ->
-	      let cs1 = List.fold_left (fun acc l -> match l with
-		| PVar(v, _) -> v::acc
-		| _ -> failwith "nested pattern in deconstruction not supported") [] ls in
-	      cs1 @ acc
-	    | _ -> failwith "weird patterns in deconstruction not supported") [] fs
+	let cs = 
+	  let rec lookforcall'_filter acc = function  
+	    | PVar(v, _) -> v::acc
+	    | _ -> failwith 
+	      "nested pattern in deconstruction not supported"
+	  in 
+	  let rec lookforcall'_pattern acc = function
+	    | Pattern(p,_) 	 ->
+	      match p with
+		| [] -> acc
+		| PConApp(_, _, ls)::rest ->
+		  let cs1 = List.fold_left lookforcall'_filter [] ls
+		    in
+		    cs1 @ (List.fold_left lookforcall'_filter acc rest) 
+		  | _ -> failwith 
+		    "weird patterns in deconstruction not supported"
+	  in
+	  List.fold_left lookforcall'_pattern [] fs
+	    
 	in
 	let t' = List.fold_left (fun t c -> add_child t p c) t cs in
-	(List.fold_left (fun acc (Filter(_,e)) -> (look_for_call' e t' ip)@acc) [] fs)
+	(List.fold_left (fun acc (Pattern(_,e)) -> (look_for_call' e t' ip)@acc) [] fs)
       | _ -> []
 
 let build_callgraph fsafe fs =
   let build f =
     let vd = List.hd (List.filter (fun x ->
       match x with
-	| DFun(v, _, _, _, _) when v = f -> true
+	| GDef((v,_), _) when v = f -> true
+	| GRecDef(v,_) -> 
+	  let rec find_recdef = function
+	    | [] -> false 
+	    | (v,_):: rest -> if v = f then true else find_recdef rest
+	  in
+	  find_recdef v
 	| _ -> false) fsafe.globals) in
     match vd with
-      | DFun(_, _, ip, _, e) ->
-	let tree =  init_tree ip in
-	look_for_call' e tree (List.map (fun (APar(v, _)) -> v) ip)
-      | _ -> []
+      | GDef(_,e) ->
+	begin match e.e with
+	  | EAbs(_,ip,e) ->
+	     let tree =  init_tree ip in
+	     look_for_call' e tree (List.map (fun (v, _) -> v) ip)
+	  | _ -> []
+	end
+      | GRecDef(v,e) ->[](*
+	match (e.e) with
+	  | ELet (vi,es) ->
+	    match (v,es) with 
+	      | (v::_,es *)
+  
   in
   List.fold_left (fun acc f ->
     let edges = build f in

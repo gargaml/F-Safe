@@ -25,10 +25,12 @@ pprinter.cmo: utils.cmo fsafe.cmo
 pprinter.cmx: utils.cmx fsafe.cmx
 relationmatrix.cmo:
 relationmatrix.cmx:
-termination.cmo: relationmatrix.cmo fsafe.cmo config.cmo callgraph.cmo
-termination.cmx: relationmatrix.cmx fsafe.cmx config.cmx callgraph.cmx
-typechecker.cmo:
-typechecker.cmx:
+termination.cmo: relationmatrix.cmo fsafe.cmo cycle.cmo config.cmo \
+    callgraph.cmo
+termination.cmx: relationmatrix.cmx fsafe.cmx cycle.cmx config.cmx \
+    callgraph.cmx
+typechecker.cmo: wftype.cmo fsafe.cmo
+typechecker.cmx: wftype.cmx fsafe.cmx
 utils.cmo:
 utils.cmx:
 wftype.cmo: fsafe.cmo

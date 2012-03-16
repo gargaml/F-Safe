@@ -24,7 +24,7 @@ open Fsafe
 
 exception Duplicate of string
 
-type tscheme = Scheme of variable list * annotated_component list * ptyp 
+type tscheme = TScheme of type_variable list * atyp list * atyp
 
 module SMap = Map.Make(String)
 
@@ -124,7 +124,7 @@ let rec print_strings = function
 (* check_list_of_param : string -> trie -> param -> unit *)
 let rec check_list_of_param cons trie = function
   | [] -> ()
-  | ACom (s, _) :: rest ->
+  | (s, _) :: rest ->
     try
       check_list_of_param cons (enter trie s) rest
     with Duplicate s ->
@@ -148,19 +148,22 @@ let rec check_list_of_ptyp = function
 (* check_list_of_contructor : trie -> data_contructor_definition -> trie *)
 let rec check_list_of_constructor constrie = function
   | [] -> constrie
-  | DConstructor (s,paramlist) :: rest ->
-    (check_list_of_param s empty paramlist);
-    begin 
-      try
-	check_list_of_constructor (enter constrie s) rest
-      with Duplicate s ->
-	raise (failwith ("Duplicate constructor " ^ s))
-    end
-
+  | t :: rest ->
+    match t with
+      | TConApp (dc,paramlist) ->
+	(check_list_of_param dc empty paramlist);
+	begin
+	  try
+	    check_list_of_constructor (enter constrie dc) rest
+	  with Duplicate dc ->
+	    raise (failwith ("Duplicate constructor " ^ dc))
+	end
+      | _ -> failwith "Bad type definition"
+	  
 (* check_list_of_definition : trie -> trie -> data_type_definition -> unit *)
 let rec check_list_of_definition typeidenttrie constrie = function
   | [] -> ()
-  | DTypeDef (tc, _, conslist) :: rest -> 
+  | TDef (tc, _, conslist) :: rest -> 
     begin
       try
 	check_list_of_definition 
@@ -175,26 +178,14 @@ let rec check_list_of_definition typeidenttrie constrie = function
 let check = function
     { types = l; globals = _; entry = _ } -> check_list_of_definition empty empty l
 
-
-(* check : fsafe -> SMap *)
-let create_tscheme_map ast =
-  match ast.types with
-    | [] -> SMap.empty
-    | (_::_) as typelist ->  
-      let rec createScheme tlist map =
-	match tlist with
-          | [] -> map
-          | (DTypeDef (typ, ptypListe, constructorliste)) :: l ->	    
-            let rec createConsListe ll mapp = 
-	      match ll  with
-		  [] -> createScheme l mapp
-		| DConstructor (const, paramListe) :: lll -> 
-		  SMap.add 
-		    const 
-		    (Scheme(ptypListe,
-			    paramListe,
-			    Tparam(typ,[]))) 
-		    (createConsListe lll mapp) 
-	    in  createConsListe constructorliste map
-      in createScheme typelist SMap.empty
-
+let build_tscheme_map { types = ts ; globals = _ ; entry = _ } =
+  let avar x = AVar x in
+  let f acc (TDef (tc, tvs, ts)) =
+    let g acc = function
+      | TConApp (dc, tdvs) -> 
+	let aca = AConApp (tc, List.map avar tvs) in
+	let sch = TScheme (tvs, List.map snd tdvs, aca) in
+	SMap.add dc sch acc
+      | _ -> failwith "unexpected type definition"
+    in List.fold_left g acc ts
+  in List.fold_left f SMap.empty ts

@@ -32,7 +32,6 @@ open Typechecker
 open Termination
 open Wftype
 
-(* parse : Lexing.lexbuf -> ?? *)
 let parse lexbuf =
   try
     Parser.fsafe Lexer.token lexbuf
@@ -70,19 +69,15 @@ let handle filename =
 
     (* well-formed type *)
     if !verbose then printf "*** Checking types well-formedness...\n";
-    Wftype.check ast;
+    (*Wftype.check ast;*)
 
     (* well-formed type *)
-    (* Uncomment this code when typechecking is implemented
-       if !verbose then printf "** Creating type schemes map...\n";
-       ignore (Wftype.create_tscheme_map ast);
-    *)
-
+    if !verbose then printf "** Creating type schemes map...\n";
+    let dcenv = Wftype.build_tscheme_map ast in
+    
     (* type checking *)
-    (* Uncomment this code when typechecking is implemented
-       if !verbose then printf "Type checking...\n";
-       ignore (typecheck ast);
-    *)
+    if !verbose then printf "Type checking...\n";
+    let ast = typecheck ast dcenv in
     
     (* termination checking *)
     if !verbose then printf "*** Termination checking...\n";
@@ -102,4 +97,5 @@ let handle filename =
 
     close_files ()
   with
+    | Typechecker.TypingException s -> failwith s
     | x -> close_files (); raise x

@@ -49,7 +49,9 @@ fsafe:
 program :
   |
       { [] }
-  | e = expression es = expressions
+  | e = expression
+      { [e] }				    
+  | e = expression COMMA es = program
       { e :: es }
 
 annotation:
@@ -141,10 +143,10 @@ global_definition:
       { GDef (tv, e) }
   | DEF i = IDENT LPAREN tps = typed_parameters RPAREN COLON a = annotation EQUAL
     e = expression
-      { GDef ((i, a), { e = EAbs ([], tps, e); t = Undefined }) }
+      { GDef ((i, a), { e = EAbs ([], tps, e); t = None }) }
   | DEF i = IDENT LBRACKET tvs = type_variables RBRACKET LPAREN tps = typed_parameters RPAREN
     COLON a = annotation EQUAL e = expression
-      { GDef ((i, a), { e = (EAbs (tvs, tps, e)); t = Undefined }) }
+      { GDef ((i, a), { e = (EAbs (tvs, tps, e)); t = None }) }
   | DEF is = typed_variables EQUAL e = expression
       { GRecDef (is, e) }
 
@@ -160,24 +162,24 @@ expressions:
 
 expression:
   | i = IDENT
-      { { e = EVar i; t = Undefined } }
+      { { e = EVar i; t = None } }
   | tca = dconstructor_application
-      { { e = tca; t = Undefined } }
-  | LET LPAREN ass = assignments RPAREN LBRACE e = expression RBRACE (* sorry *)
-      { { e = ELet (ass, e); t = Undefined } }
+      { { e = tca; t = None } }
+  | LET LPAREN ass = assignments RPAREN LBRACE e = expressions RBRACE (* sorry *)
+      { { e = ELet (ass, e); t = None } }
   | CASE tes = expressions LBRACE ps = patterns RBRACE
-      { { e = ECase (tes, ps); t = Undefined } }
+      { { e = ECase (tes, ps); t = None } }
   | i = IDENT LPAREN es = expressions RPAREN
-      { { e = EApp (i, [], es); t = Undefined } }
+      { { e = EApp (i, [], es); t = None } }
   | i = IDENT LBRACKET ans = annotations RBRACKET LPAREN es = expressions RPAREN
-      { { e = EApp (i, ans, es); t = Undefined } }
+      { { e = EApp (i, ans, es); t = None } }
   | FUN LBRACKET tvs = type_variables RBRACKET
         LPAREN aps = typed_parameters RPAREN
         COLON a = annotation ARROW e = expression
-      { { e = EAbs (tvs, aps, e); t = Undefined } }
+      { { e = EAbs (tvs, aps, e); t = None } }
   | FUN LPAREN aps = typed_parameters RPAREN
         COLON a = annotation ARROW e = expression
-      { { e = EAbs ([], aps, e); t = Undefined } }
+      { { e = EAbs ([], aps, e); t = None } }
 
 dconstructor_application:
   | i = MAJIDENT LBRACKET ans = annotations RBRACKET LPAREN tes = expressions RPAREN

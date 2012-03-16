@@ -40,7 +40,6 @@ and ptyp =
   | TConApp of data_constructor * typed_variable list
 
 and atyp =
-  | Undefined (* useful only at parsing time *)
   | AVar of type_variable
   | AArrow of atyp * atyp
   | AConApp of type_constructor * atyp list
@@ -62,13 +61,13 @@ and filter =
 and expression = 
   | EVar of variable
   | EConApp of data_constructor * atyp list * typed_expression list
-  | ELet of (typed_variable * typed_expression) list * typed_expression
+  | ELet of (typed_variable * typed_expression) list * typed_expression list
   | EAbs of type_variable list * typed_parameter list * typed_expression
   | EApp of variable * atyp list * typed_expression list
   | ECase of typed_expression list * pattern list
 
 and typed_expression = { e : expression;
-			 mutable t : atyp }
+			 t : atyp option }
 
 type fsafe =
     {
