@@ -27,7 +27,7 @@ module Env = Map.Make(
     type t = string
     let compare = String.compare
   end)
-
+  
 type expr = Constant of string * expr list
 	    | Vide
 		
@@ -51,7 +51,7 @@ let rec var_of_params params =
   match params with 
       [] -> []
     | (var,_) :: tl ->  var :: (var_of_params tl)
-
+      
 let rec not_annotated_exprs = function
   | [] -> []
   | hd :: tl -> hd.e :: not_annotated_exprs tl 
@@ -65,13 +65,40 @@ let rec env_cons env def =
 	| _ -> 
 	  Env.add varname (Cons exp.e) env)
     | GRecDef (vars,exps) -> failwith ""
-
+      
 let rec assoc_param_exp x y env = 
   match (x,y) with
       ([],_) -> env
     | (_,[]) -> env
-    | (h1::tl1,h2::tl2) ->  Env.add h1 h2 (assoc_param_exp tl1 tl2 env)
+    | (h1::tl1,h2::tl2) ->  Env.add h1 (Cons h2.e) (assoc_param_exp tl1 tl2 env)
       
+let rec compare_pattern filters exprs =
+  match filters, exprs with
+    | [],[] -> true
+    | [],_ | _, [] -> false
+    | PVar (var, _)::tl1, _::tl2 -> compare_pattern tl1 tl2
+    | PConApp (cons1, a_typs, pats)::tl1,hd::tl2 -> 
+      match hd.e with 
+	| EConApp(cons2,_,exps) ->  
+	  if (cons1 = cons2) then 
+	    (compare_pattern pats exps)&&(compare_pattern tl1 tl2)
+	  else false 
+	| _ -> false 
+	  
+let rec assoc_param_pattern filters exprs env=  
+  match filters, exprs with
+    | [],[] -> env
+    | [],_ | _, [] -> failwith "interpret.assoc_pattern1"
+    | PVar (var, _)::tl1, hd::tl2 ->  
+      assoc_param_pattern tl1 tl2 (Env.add var (Cons hd.e) env)
+    | PConApp (cons1, a_typs, pats)::tl1,hd::tl2 -> 
+      match hd.e with 
+	| EConApp(cons2,_,exps) ->  
+	  if (cons1 = cons2) then 
+	    (assoc_param_pattern pats exps (assoc_param_pattern tl1 tl2 env))
+	  else failwith "interpret.assoc_pattern2"
+	| _ -> failwith "interpret.assoc_pattern3"
+
 let eval_exprs env l exp = 
   let rec eval_exp env exp =
     match exp with 
@@ -88,59 +115,30 @@ let eval_exprs env l exp =
       | EAbs (_,_,_) -> failwith "interpret.eval_exprs" 
       | EApp (funname,_,exps) -> 
 	(try 
-	  let v = Env.find funname env in
-	  (match v with 
-	    | Fun (envlocal, params, exp) -> failwith ""
-	      (*eval_exp (assoc_param_exp params 
-			   (not_annotated_exprs exps)
-			   envlocal) exp.e*)
-	    | _ -> failwith "function not declared")
-	with Not_found -> failwith "function not declared")
-     (* | ECase (exps,patterns) -> failwith ""
+	   let v = Env.find funname env in
+	   (match v with 
+	     | Fun (envlocal, params, exp) ->
+	       eval_exp (assoc_param_exp params 
+			   exps
+			   envlocal) exp
+	     | _ -> failwith "function not declared")
+	 with Not_found -> failwith "function not declared")
+      | ECase (exps,patterns) -> 
 	(match patterns with
 	  | (Pattern (filters,expr))::tl2 -> 
 	    if (compare_pattern filters exps) then 
 	      eval_exp (assoc_param_pattern filters exps env) expr.e
-	    else eval_exp env ECase(exps,tl2)
-	  | [] -> Vide) *)
+	    else eval_exp env (ECase(exps,tl2))
+	  | [] -> Vide) 
       | _ -> failwith "interpret.eval_exprs"
   in (eval_exp env exp) :: l
   
-  
-let rec assoc_param_pattern filters exprs env=  
-  match filters, exprs with
-    | [],[] -> env
-    | [],_ | _, [] -> failwith "interpret.assoc_pattern1"
-    | PVar (var, _)::tl1, hd::tl2 ->  assoc_param_pattern tl1 tl2 (Env.add var hd.e env)
-    | PConApp (cons1, a_typs, pats)::tl1,hd::tl2 -> 
-      match hd.e with 
-	| EConApp(cons2,_,exps) ->  
-	  if (cons1 = cons2) then 
-	    (assoc_param_pattern pats exps (assoc_param_pattern tl1 tl2 env))
-	  else failwith "interpret.assoc_pattern2"
-	| _ -> failwith "interpret.assoc_pattern3"
-	  
-	
-let rec compare_pattern filters exprs =
-  match filters, exprs with
-    | [],[] -> true
-    | [],_ | _, [] -> false
-    | PVar (var, _)::tl1, _::tl2 -> compare_pattern tl1 tl2
-    | PConApp (cons1, a_typs, pats)::tl1,hd::tl2 -> 
-      match hd.e with 
-	| EConApp(cons2,_,exps) ->  
-	  if (cons1 = cons2) then 
-	    (compare_pattern pats exps)&&(compare_pattern tl1 tl2)
-	  else false 
-	| _ -> false 
-	  
-	
 (* interpret : ?? -> ?? *)
-	let interpret ast =
-	  let env = List.fold_left env_cons Env.empty ast.globals in
-	  let exps = List.fold_left (eval_exprs env) [] (not_annotated_exprs ast.entry) in
-	  exp_to_string exps
-
+let interpret ast =
+  let env = List.fold_left env_cons Env.empty ast.globals in
+  let exps = List.fold_left (eval_exprs env) [] (not_annotated_exprs ast.entry) in
+  exp_to_string exps
+    
 
 
 
