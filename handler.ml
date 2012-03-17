@@ -82,16 +82,19 @@ let handle filename =
     (* termination checking *)
     if !verbose then printf "*** Termination checking...\n";
     if !termination_on then
-      let results = termination_check ast in
-      printf "\n";
-      List.iter (fun (f,r) -> printf "%s Function \"%s\" %s termination check\n"
-	(if r then "[X]" else "[ ]")
-	f (if r then "passes" else "doesn't pass")) results;
+      begin
+	let results = termination_check ast in
+	printf "\n";
+	List.iter
+	  (fun (f,r) -> printf "%s Function \"%s\" %s termination check\n"
+	    (if r then "[X]" else "[ ]")
+	    f (if r then "passes" else "doesn't pass")) results
+      end;
       
-      (* interpreting *)
-(*      if !verbose then printf "Interpreting...\n";
-      if !interprete_on then
-	ignore (interpret ast);*)
+    (* interpreting *)
+    if !verbose then printf "*** Interpreting...\n";
+    if !interprete_on then
+      ignore (interpret ast);
       
     close_files ()
   with
