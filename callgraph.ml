@@ -276,7 +276,9 @@ let dot_of_callgraph graph =
 			    Printf.printf "new Callgraph of %s is %s need to add %s \n" f (string_of_callgraph newcg) (string_of_calls f calls);
 			    CallGraph.add f calls newcg
 			     
-			  | EVar(s) -> look_in_assigns s assigns
+			  | EVar(s) ->let newcg =  look_in_assigns s assigns
+				      in
+				      CallGraph.add f [(s,[],[],Relationmatrix.empty 0 0)] newcg
 			  | _ -> callgraph
 		end
 	      | (_::rest,e::rest') ->
