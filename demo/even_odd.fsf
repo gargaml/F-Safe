@@ -12,4 +12,5 @@ case n {
 }) { even,odd }
 
 
-is_even(Succ(Succ(Zero)))
+is_even(Succ(Succ(Zero))),
+is_odd(Succ(Succ(Zero)))
