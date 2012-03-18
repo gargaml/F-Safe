@@ -397,14 +397,35 @@ let dot_of_callgraph graph =
      
 
 
+type nat = | Zero |Succ of nat
+
+let rec nattoint = function | Zero -> 0 | Succ(n) -> 1+(nattoint n)
+let print_nat n = Printf.printf "%d\n" (nattoint n)  
+let rec h x y = match x with Zero -> 
+  begin match y with 
+    | Zero -> Zero
+    | Succ(y') -> h x y  
+  end
+  | Succ(x') -> h x' y
+
+let rec f x y = match x with 
+  |Zero -> Zero 
+  | Succ (x') -> match y with 
+      |Zero -> Zero 
+      | Succ(y') -> h (g x' y) (f (Succ (Succ x)) y')
+and  g x y  = match x with | Zero -> Zero 
+  | Succ(x') -> match y with | Zero -> Zero 
+      | Succ(_) -> h (f x y) (g x' (Succ y))
+
+
 let rec build_callgraph ast mainfuns cg  = 
   match mainfuns with
     | [] ->  Printf.printf "last Callgraph is %s \n" (string_of_callgraph cg);  cg
     | mainfun :: rest -> 
 
-      
+      (*printf "un petit test sur fgh ";
+      print_nat (f (Succ(Succ(Zero))) (Succ(Succ(Zero))));*)
       Printf.printf "building callgraph of %s \n" mainfun; 
       build_callgraph ast rest (build_cg_of_f ast ast.globals cg mainfun)
-
 
 

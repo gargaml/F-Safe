@@ -26,27 +26,33 @@ open Printf
 
 type cycle = (string*edge)list
 
+module CMap = Map.Make(
+struct 
+  type t = string
+  let compare = String.compare
+end);;
+
 let rec explore_couple callgraph cycle history = function
   | funname, edges ->
     match edges with 
       | [] -> []
       | edge :: rest -> 
-	let rec explore_edge fun_name edge callgraph cycle history =
-	  let rec filter_cycle fname = function
-	    | (calledname,edge)::rest ->  if (String.compare calledname fname) == 0 then (fname,edge)::rest else filter_cycle fname rest
+	let rec explore_edge fname edge history =
+	  let rec filter_cycle  = function
+	    | (calledname,edge)::rest ->  if (String.compare calledname fname) == 0 then (fname,edge)::rest else filter_cycle rest
 	    |[] -> failwith "error here"
 	  in
 	  match edge with 
 	    | (calledname,_,_,_) ->
-	      let next_cycle = cycle @ [(fun_name,edge)] in
+	      let next_cycle = cycle @ [(fname,edge)] in
 	      let next_edges = CallGraph.find calledname callgraph in
 	      let next_cycles = calledname, next_edges in
 	      if List.mem calledname history then
-		[filter_cycle calledname next_cycle]
+		[filter_cycle next_cycle]
 	      else
 		explore_couple callgraph next_cycle history next_cycles
 	in
-	explore_edge funname edge callgraph cycle (funname::history)
+	explore_edge funname edge  (funname::history)
 	@ explore_couple  callgraph cycle (funname::history) (funname, rest)
 
 
