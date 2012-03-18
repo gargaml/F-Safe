@@ -1,0 +1,5 @@
+type nat = Zero | Succ(n:nat)
+
+def id_nat(x:nat):nat = x
+
+id_nat (Succ(Succ(Zero)))

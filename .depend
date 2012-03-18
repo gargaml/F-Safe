@@ -1,6 +1,6 @@
 parser.cmi: fsafe.cmo
-callgraph.cmo: utils.cmo relationmatrix.cmo fsafe.cmo
-callgraph.cmx: utils.cmx relationmatrix.cmx fsafe.cmx
+callgraph.cmo: utils.cmo relationmatrix.cmo pprinter.cmo fsafe.cmo
+callgraph.cmx: utils.cmx relationmatrix.cmx pprinter.cmx fsafe.cmx
 config.cmo:
 config.cmx:
 cycle.cmo: relationmatrix.cmo callgraph.cmo
