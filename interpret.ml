@@ -19,8 +19,10 @@
 (* Description : fsafe interpreter                                           *)
 (*                                                                           *)
 (*****************************************************************************)
+
 open Fsafe
 open Printf
+open Utils
 
 module Env = Map.Make(
   struct 
@@ -28,24 +30,89 @@ module Env = Map.Make(
     let compare = String.compare
   end)
   
-type result = Cons of string * result list
-    
-type value = 
-  | Var of expression 
-  | Fun of value Env.t * string list * expression
+type value =
+  | Cons of string * value list
+  | Fun of string * string list * typed_expression
+
+let string_of_value v = 
+  let rec f = function
+    | Cons (s, vs) -> sprintf "%s(%s)" s (string_of_list f "," vs)
+    | Fun (_, _, _) -> "<fun>"
+  in (f v) ^ "\n"
+
+let string_of_values vs = 
+  List.fold_left (fun acc s -> acc ^ (string_of_value s)) "" vs
+
+let string_of_env env =
+  sprintf "*** Environment :%s*** End of environment\n"
+    (List.fold_left (fun acc (k, v) -> sprintf "%s\n%s -> %s" acc k (string_of_value v))
+       "" (Env.bindings env))
+
+let rec build_env env def =
+  match def with
+    | GDef ((varname, _), exp) ->
+      begin match exp.e with
+	| EAbs (_, params, exp) ->
+	  Env.add varname (Fun (varname, List.map fst params, exp)) env
+	| _ -> failwith "GlobalDef must be an abstraction definition"
+      end
+    | GRecDef _ ->
+      failwith "not yet implemented"
+
+let rec eval_expr env e =
+  match e.e with
+    | EVar v ->
+      Env.find v env
+    | EConApp (dc, _, es) -> 
+      let es' = List.map (eval_expr env) es in
+      Cons (dc, es')
+    | ELet (ls, es) ->
+      let env' = List.fold_left
+	(fun ev ((v,_), e) -> Env.add v (eval_expr env e) env) env ls in
+      eval_expr env' (List.hd es)
+    | EAbs (_, args, e) -> 
+      Fun ("", List.map fst args, e)
+    | EApp (f, _, es) ->
+      let es' = List.map (eval_expr env) es in
+      begin match Env.find f env with
+	| Fun (_, vs, e) ->
+	  begin try
+	    let env' = List.fold_left2
+	      (fun env v e -> Env.add v e env) env vs es' in
+	    eval_expr env' e
+	  with Invalid_argument _ -> failwith "Bad number of arguments";
+	  end
+	| _ -> failwith "Only abstraction can be applied"
+      end
+    | ECase (es, ps) -> 
+      match eval_expr env (List.hd es) with
+	| Cons (dc, args) -> eval_match env dc args ps
+	| _ -> failwith "Pattern matching cannot occur on an abstraction"
+
+and eval_match env dc args ps =
+  let rec f ps =
+    match ps with
+      | [] -> failwith "No matching pattern found"
+      | (Pattern (fs, e)) :: ps ->
+	begin match List.hd fs with
+	  | PConApp (cstr, _, fls) ->
+	    if compare cstr dc <> 0 then
+	      f ps
+	    else
+	      let env' = List.fold_left2 
+		(fun env v e -> Env.add v e env) env
+		(List.map (fun x -> match x with
+		  | PVar (v, _) -> v
+		  | _ -> failwith "Non-flat pattern to be implemented") fls)
+		args
+	      in eval_expr env' e
+	  | PVar (v, _) -> failwith "Non-flat pattern to be implemented"
+	end
+  in f ps
       
-let rec string_of_exp exps =
-  match exps with 
-    | [] -> ""
-    | Cons (constname,exprs) :: es-> 
-      let s = 
-	(match exprs with
-	    [] -> " " 
-	  | e :: [] -> string_of_exp [e] 
-	  | e :: tl -> string_of_exp [e] ^ "," ^ string_of_exp tl )
-      in constname ^ "(" ^ s ^ ")" ^ string_of_exp es
+
       
-let rec var_of_params params =
+(*let rec var_of_params params =
   match params with 
       [] -> []
     | (var,_) :: tl ->  var :: (var_of_params tl)
@@ -145,8 +212,10 @@ let eval_exprs env l exp =
     (*Env.iter (fun key elt -> printf "%s\n" key; (ignore elt)) env;*)
     match exp with 
       | EConApp (constname,_,exprs) -> 
+	printf "#EConApp\n";
 	Cons (constname,List.map (eval_exp env) (not_annotated_exprs exprs))
       | EVar (leaf) ->
+	printf "#EVar\n";
 	begin 
 	  try 
 	    let v = Env.find leaf env in 
@@ -155,8 +224,11 @@ let eval_exprs env l exp =
 	      | Fun (envlocal,_,exp) -> eval_exp envlocal exp
 	  with Not_found -> failwith "variable without value"
 	end
-      | EAbs (_,_,_) -> failwith "interpret.eval_exprs" 
+      | EAbs (_,_,_) -> 
+	printf "#EAbs\n";
+	failwith "interpret.eval_exprs" 
       | EApp (funname,_,exps) -> 
+	printf "#EApp\n";
 	begin
 	  try 
 	    (*printf "case EApp, function name: %s\n" funname; *)
@@ -171,6 +243,7 @@ let eval_exprs env l exp =
 	  with Not_found -> failwith "function not declared"
 	end
       | ECase (exps,patterns) -> 
+	printf "#ECase\n";
 	begin
 	  match patterns with
 	    | [Pattern (filters,expr)] -> 
@@ -183,14 +256,16 @@ let eval_exprs env l exp =
 	      else eval_exp env (ECase(exps,tl2))
 	    | [] -> failwith "empty case"
 	end
-      | ELet (_,_) -> failwith "interpret.eval_exprs"
+      | ELet (_,_) ->
+	printf "#ELet\n";
+	failwith "interpret.eval_exprs"
   in (eval_exp env exp) :: l
-
+*)
 
   
 (* interpret : ?? -> ?? *)
 let interpret ast =
-  let env = List.fold_left env_cons Env.empty ast.globals in
-  Env.iter (fun key elt -> printf "%s\n" key; (ignore elt)) env;
-  let exps = List.fold_left (eval_exprs env) [] (not_annotated_exprs ast.entry) in
-  printf "%s\n" (string_of_exp exps)
+  let env = List.fold_left build_env Env.empty ast.globals in
+  printf "%s" (string_of_env env);
+  let values = List.fold_left (fun acc e -> acc @ [eval_expr env e]) [] ast.entry in
+  printf "%s" (string_of_values values)
