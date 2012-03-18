@@ -24,30 +24,37 @@ open Fsafe
 open Printf
 open Utils
 
+(* environment for evaluation : maps string to value *)
 module Env = Map.Make(
   struct 
     type t = string
     let compare = String.compare
   end)
-  
+
+(* evaluation result *)
 type value =
   | Cons of string * value list
   | Fun of string * string list * typed_expression
 
+(* string_of_value : value -> string *)
 let string_of_value v = 
   let rec f = function
     | Cons (s, vs) -> sprintf "%s(%s)" s (string_of_list f "," vs)
     | Fun (_, _, _) -> "<fun>"
   in (f v) ^ "\n"
 
+(* string_of_values : value list -> string *)
 let string_of_values vs = 
   List.fold_left (fun acc s -> acc ^ (string_of_value s)) "" vs
 
+(* string_of_env : value Env.t -> string *)
 let string_of_env env =
   sprintf "*** Environment :%s*** End of environment\n"
-    (List.fold_left (fun acc (k, v) -> sprintf "%s\n%s -> %s" acc k (string_of_value v))
+    (List.fold_left (fun acc (k, v) ->
+      sprintf "%s\n%s -> %s" acc k (string_of_value v))
        "" (Env.bindings env))
 
+(* build_env : value Env.t -> Fsafe.global_definition -> value Env.t *)
 let rec build_env env def =
   match def with
     | GDef ((varname, _), exp) ->
@@ -59,6 +66,7 @@ let rec build_env env def =
     | GRecDef _ ->
       failwith "not yet implemented"
 
+(* eval_expr : value Env.t -> Fsafe.typed_expression -> value *)
 let rec eval_expr env e =
   match e.e with
     | EVar v ->
@@ -88,7 +96,8 @@ let rec eval_expr env e =
       match eval_expr env (List.hd es) with
 	| Cons (dc, args) -> eval_match env dc args ps
 	| _ -> failwith "Pattern matching cannot occur on an abstraction"
-
+(* eval_match : value Env.t -> Fsafe.data_constructor ->
+   value list -> Fsafe.pattern list -> value *)
 and eval_match env dc args ps =
   let rec f ps =
     match ps with
@@ -110,9 +119,9 @@ and eval_match env dc args ps =
 	end
   in f ps
       
-(* interpret : ?? -> ?? *)
+(* interpret : Fsafe.fsafe -> () *)
 let interpret ast =
   let env = List.fold_left build_env Env.empty ast.globals in
-  (*printf "%s" (string_of_env env);*)
-  let values = List.fold_left (fun acc e -> acc @ [eval_expr env e]) [] ast.entry in
+  let values = List.fold_left
+    (fun acc e -> acc @ [eval_expr env e]) [] ast.entry in
   printf "%s" (string_of_values values)
