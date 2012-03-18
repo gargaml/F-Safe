@@ -94,122 +94,7 @@ let rec look_for_call e =
 	  @ (List.fold_left
 	       (fun acc (Pattern(_,e)) -> (look_for_call e)@acc) [] fs)
       | _ -> []
-(*
-let rec look_for_call' e t ip =
-    match e.e with
-      | EConApp(_, _, es) ->
-	List.fold_left (fun acc e -> (look_for_call' e t ip)@acc) [] es
-      | ELet(a, b) ->
-	(List.fold_left
-	   (fun acc (_,exp) -> (look_for_call' exp t ip)@acc) 
-	   [] a)
-	@ (List.flatten(List.fold_left (fun acc b-> look_for_call' b t ip :: acc) [] b))
-     
-      | EApp(f, _, es) -> 
-	let op = List.map (fun e -> match e.e with
-	  | EVar s -> s
-	  | _ -> failwith "expression in call not supported") es in
-	let m = empty (List.length ip) (List.length op) in
-	for i = 0 to m.nb_l - 1 do
-	  for j = 0 to m.nb_c - 1 do
-	    m.data.(j).(i) <-
-	      match get_relation t (List.nth ip j) (List.nth op i) with
-		| None -> Unknown
-		| Some s -> s
-	  done;
-	done;
-	[(f, ip, op, m)]
-      | ECase(es, fs) ->
-	let p = match (List.hd es).e with
-	  | EVar s -> s
-	  | _ -> failwith "expression in match not supported" in
-	let cs = 
-	  let rec lookforcall'_filter acc = function  
-	    | PVar(v, _) -> v::acc
-	    | _ -> failwith 
-	      "nested pattern in deconstruction not supported"
-	  in 
-	  let rec lookforcall'_pattern acc = function
-	    | Pattern(p,_) 	 ->
-	      match p with
-		| [] -> acc
-		| PConApp(_, _, ls)::rest ->
-		  let cs1 = List.fold_left lookforcall'_filter [] ls
-		    in
-		    cs1 @ (List.fold_left lookforcall'_filter acc rest) 
-		  | _ -> failwith 
-		    "weird patterns in deconstruction not supported"
-	  in
-	  List.fold_left lookforcall'_pattern [] fs
-	    
-	in
-	let t' = List.fold_left (fun t c -> add_child t p c) t cs in
-	(List.fold_left (fun acc (Pattern(_,e)) -> (look_for_call' e t' ip)@acc) [] fs)
-      | _ -> []
 
-let build_callgraph fsafe fs =
-  let build f =
-    let vd = List.hd (List.filter (fun x ->
-      match x with
-	| GDef((v,_), _) when v = f -> true
-	| GRecDef(v,_) -> 
-	  let rec find_recdef = function
-	    | [] -> false 
-	    | (v,_):: rest -> if v = f then true else find_recdef rest
-	  in
-	  find_recdef v
-	| _ -> false) fsafe.globals) in
-    match vd with
-      | GDef(_,e) ->
-	begin match e.e with
-	  | EAbs(_,ip,e) ->
-	     let tree =  init_tree ip in
-	     look_for_call' e tree (List.map (fun (v, _) -> v) ip)
-	  | _ -> []
-	end
-      | GRecDef(v,e) ->	
-	Printf.printf "In Grecdef with f = %s\n" f;
-	match (e.e) with
-	  | ELet (vi,es) ->
-	    Printf.printf "In Elet\n";
-	    begin
-	      match (v,es) with 		
-	      | ((v,_)::_,e::_) when v = f ->  
-		Printf.printf "Var trouvée %s\n" v;
-		begin	match e.e with
-		  | EAbs(_,ip,e) ->
-		    let tree =  init_tree ip in
-		    look_for_call' e tree (List.map (fun (v, _) -> v) ip)
-		  | EVar (v) -> let rec find_local var locals =
-				      match locals with 
-					| [] -> []
-					| ((v,_),(e)) :: _ when v = var ->
-					  Printf.printf "%s la var est bien detectée\n" var;
-					  begin	  match e.e with
-					    | EAbs(_,ip,e) ->
-					      let tree =  init_tree ip in
-					      look_for_call' e tree (List.map (fun (v, _) -> v) ip)
-					    | _ -> []
-					  end
-					| _ :: rest -> find_local var rest
-				    in	 
-				Printf.printf "%s la var va etre cehrchée\n" v;
-				    find_local v vi
-		  |_ -> []
-		end
-	      | _ -> []
-	    end
-	  | _ -> []
-	      
-
-  
-  
-  in
-  List.fold_left (fun acc f ->
-    let edges = build f in
-    CallGraph.add f edges acc) CallGraph.empty fs
-    
-*)
 let dot_of_callgraph graph =
   let oc = open_out "callgraph.dot" in
   fprintf oc "digraph Callgraph {\n";
@@ -222,18 +107,18 @@ let dot_of_callgraph graph =
   close_out oc
 
  let rec build_cg_of_f ast globals callgraph f = 
-   Printf.printf "building callgraph of %s\n" f;
+
     match globals with 
       | [] -> callgraph
       | GDef((name,_),e) :: _ when name = f -> 
 	begin match e.e with
-	  | EAbs(_,ip,e) ->     Printf.printf "creating calls of %s\n" f; 
+	  | EAbs(_,ip,e) ->    
 	    let tree =  init_tree ip in
 	    let (calls,newcg) = 
 	      (look_for_call'' e tree (List.map (fun (v, _) -> v) ip) 
 		 (CallGraph.add f [] callgraph) ast.globals ast)
 	    in 
-	    Printf.printf "new Callgraph of %s is %s need to add %s \n" f (string_of_callgraph newcg) (string_of_calls f calls);
+	   
 	    CallGraph.add f calls newcg
 	      
 	  | _ -> callgraph
@@ -256,7 +141,7 @@ let dot_of_callgraph graph =
 			 (CallGraph.add f [] callgraph)
 			 ast.globals ast)
 		    in   
-		    Printf.printf "new Callgraph of %s is %s need to add %s \n" f (string_of_callgraph newcg) (string_of_calls f calls);
+		
 		    CallGraph.add f calls newcg
 		  | _ -> callgraph
 		end
@@ -273,7 +158,7 @@ let dot_of_callgraph graph =
 				 (CallGraph.add f [] callgraph)
 				 ast.globals ast)
 			    in 
-			    Printf.printf "new Callgraph of %s is %s need to add %s \n" f (string_of_callgraph newcg) (string_of_calls f calls);
+		
 			    CallGraph.add f calls newcg
 			     
 			  | EVar(s) ->let newcg =  look_in_assigns s assigns
@@ -306,8 +191,7 @@ let dot_of_callgraph graph =
 	   let (restcalls,restcg) = callsinexprlist rest newcg in
 	   
 	   (calls @ restcalls , restcg) in
-    (* let (calls,newcg) = 
-       (List.fold_left (fun acc e -> look_for_call'' e t ip cg :: acc) [] exprlist*)
+
      match expr.e with 
        | EConApp(_,_,es) when es != [] -> callsinexprlist es cg
        | ELet (assignlist,es) -> 
@@ -331,7 +215,7 @@ let dot_of_callgraph graph =
 	 let (bodycalls,bodycg) = callsinexprlist es assigncg in 
 	 (assigncalls@bodycalls,bodycg)
        | EApp(f, _, es) -> 
-	 Printf.printf "%s find in function\n" f;
+
 	 let treat_app =
 	(*   let calls = List.map (fun e -> look_for_call'' e t ip cg) es in*)
 	   let op = List.map (fun e -> match e.e with
@@ -352,13 +236,13 @@ let dot_of_callgraph graph =
 
 	   
 	   begin
-	     Printf.printf "%s was in callgraph\n" f;
+	 
 	     (treat_app, cg)
 	   end
 
 	 else 
 	   begin
-	     Printf.printf "%s was not in callgraph\n" f;
+
 	     (treat_app,build_cg_of_f ast glob cg f ) 
 	   end
        | ECase(es, fs) ->
@@ -398,35 +282,12 @@ let dot_of_callgraph graph =
      
 
 
-type nat = | Zero |Succ of nat
-
-let rec nattoint = function | Zero -> 0 | Succ(n) -> 1+(nattoint n)
-let print_nat n = Printf.printf "%d\n" (nattoint n)  
-let rec h x y = match x with Zero -> 
-  begin match y with 
-    | Zero -> Zero
-    | Succ(y') -> h x y  
-  end
-  | Succ(x') -> h x' y
-
-let rec f x y = match x with 
-  |Zero -> Zero 
-  | Succ (x') -> match y with 
-      |Zero -> Zero 
-      | Succ(y') -> h (g x' y) (f (Succ (Succ x)) y')
-and  g x y  = match x with | Zero -> Zero 
-  | Succ(x') -> match y with | Zero -> Zero 
-      | Succ(_) -> h (f x y) (g x' (Succ y))
-
-
 let rec build_callgraph ast mainfuns cg  = 
   match mainfuns with
-    | [] ->  Printf.printf "last Callgraph is %s \n" (string_of_callgraph cg);  cg
+    | [] ->   cg
     | mainfun :: rest -> 
 
-      (*printf "un petit test sur fgh ";
-      print_nat (f (Succ(Succ(Zero))) (Succ(Succ(Zero))));*)
-      Printf.printf "building callgraph of %s \n" mainfun; 
+
       build_callgraph ast rest (build_cg_of_f ast ast.globals cg mainfun)
 
 
