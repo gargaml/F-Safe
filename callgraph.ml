@@ -329,10 +329,10 @@ let dot_of_callgraph graph =
        | EApp(f, _, es) -> 
 	 Printf.printf "%s find in function\n" f;
 	 let treat_app =
+	   let calls = List.map (fun e -> look_for_call'' e t ip cg) es in
 	   let op = List.map (fun e -> match e.e with
 	     | EVar s -> s
-		(* maybe more to do here ? look for call ? *)
-	     | _ -> failwith "expression in call not supported") es in
+	     | _ -> "anotherexp") es in
 	   let m = empty (List.length ip) (List.length op) in
 	   for i = 0 to m.nb_l - 1 do
 	     for j = 0 to m.nb_c - 1 do
@@ -342,7 +342,7 @@ let dot_of_callgraph graph =
 		   | Some s -> s
 	     done;
 	   done;
-	   [(f, ip, op, m)]
+	   [(f, ip, op, m)]@calls
 	 in
 	 if CallGraph.mem f cg then	   
 
