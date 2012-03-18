@@ -88,5 +88,45 @@ let rec  string_of_cycles =
     | (fname, cycle)::rest-> fname ^ " => { " ^ 
       (string_of_cyclelist cycle) ^ " } \n"  ^ (string_of_cycles rest)
  
-     
-     
+    (* 
+let rec extand_cyclelist cyclelist = 
+  let rec buildcyclemap cyclemap cyclelist = 
+    match cyclelist with 
+      | [] -> cyclemap
+      | cycle::rest ->
+	let rec buildmap cycle map = match cycle  with 
+	  |(f,_)::rest  -> 
+	    let newmap = 
+	      if CMap.mem f then 
+		CMap.add f cycle::(CMap.find f map) map 
+	      else 	CMap.add f [cycle] map 
+       	    in buildmap rest newmap
+	  |[] -> map
+	in
+	buildcyclemap (extandmap cycle cyclemap) rest
+  in 
+  let extandcyclemap cyclemap = 
+    let extand_cycle bindings history map =
+      match bindings with 
+	| [] -> map
+	|  (f,cyclelist)::rest -> 
+	  let rec treat_cycle  cycle beginning fextand map =
+	    match cycle with 
+	      |[] -> []
+	      |(calling,_)::rest -> 
+		let expand_cycle  beginning expanders = 
+		  List.map (
+	  in
+	  let rec treat_cyclelist cyclelist history map = 
+	  match cyclelist with
+	    |[] -> []
+	    | cycle::rest -> if List.length = 1 then 
+		treat_cyclelist rest cycle::history map 
+	      else 
+		treat_cycle cycle [] history@rest map @ treat_cyclelist rest cycle::history map
+
+let cyclemap = newcyclemap CMap.empty cyclelist
+
+
+CMap.fold (fun key cyclelist acc -> cyclelist@acc) extanded_cyclemap [] 
+    *)

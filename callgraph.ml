@@ -288,6 +288,7 @@ let dot_of_callgraph graph =
 		    | _ -> look_for_rec (rest,rest')
 		end
 	      | ([],[]) -> callgraph
+	      | _ -> failwith "should not happen"
 	    in   
 	    look_for_rec (v,values)
 	  | _ -> build_cg_of_f ast rest callgraph f
@@ -296,7 +297,7 @@ let dot_of_callgraph graph =
       
  and look_for_call'' expr t ip cg glob ast = 
    let rec look_for_call'' expr t ip cg = 
-     Printf.printf "%s \n" (Pprinter.string_of_expression expr.e);
+ 
      let rec callsinexprlist exprlist cg =
        match exprlist with 
 	 | [] -> ([],cg)
@@ -392,7 +393,7 @@ let dot_of_callgraph graph =
 	  in (calls@acc,(CallGraph.fold (fun f calls cg -> CallGraph.add f calls cg) newcg cg) )) ([],cg) fs)
        | _ -> ([],cg)
    in
-   Printf.printf "%s \n" (Pprinter.string_of_expression expr.e);
+ 
    look_for_call'' expr t ip cg
      
 
