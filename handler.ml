@@ -32,6 +32,7 @@ open Typechecker
 open Termination
 open Wftype
 
+(* parse : Lexing.lexbuf -> Fsafe.fsafe *)
 let parse lexbuf =
   try
     Parser.fsafe Lexer.token lexbuf
@@ -52,50 +53,42 @@ let handle filename =
 
   try
   
-    (* option def *)
-    let run_all = ref (!debug_on || !verbose) in
-    let interprete_on = ref (!run_all || !interpretor_on) in
-    let termination_on = ref (
-      !run_all 
-      || !terminator_on 
-      || not(!run_all) && not(!interprete_on)) in
-    
     (* parsing *)
-    if !verbose then printf "*** Parsing...\n";
+    if !verbose || !debug_on then printf "*** Parsing...\n";
     let lexbuf = Lexing.from_channel source in
     let ast = parse lexbuf in
-    
-    if !run_all then print_string (string_of_fsafe ast);
+    if !debug_on then print_string (string_of_fsafe ast);
 
     (* well-formed type *)
-    if !verbose then printf "*** Checking types well-formedness...\n";
-    (*Wftype.check ast;*)
+    (*if !verbose || !debug_on then
+      printf "*** Checking types well-formedness...\n";
+      Wftype.check ast;*)
 
-    (* well-formed type *)
-    if !verbose then printf "** Creating type schemes map...\n";
-    let dcenv = Wftype.build_tscheme_map ast in
+    if !verbose || !debug_on then
+      printf "*** Creating type schemes map...\n";
+    let _ (*dcenv*) = Wftype.build_tscheme_map ast in
     
     (* type checking *)
-    if !verbose then printf "Type checking...\n";
-    let ast = typecheck ast dcenv in
+    (*if !verbose || !debug_on then
+      printf "*** Type checking...\n";
+    let ast = typecheck ast dcenv in*)
     
     (* termination checking *)
-    if !verbose then printf "*** Termination checking...\n";
-    if !termination_on then
-      begin
-	let results = termination_check ast in
-	printf "\n";
-	List.iter
-	  (fun (f,r) -> printf "%s Function \"%s\" %s termination check\n"
-	    (if r then "[X]" else "[ ]")
-	    f (if r then "passes" else "doesn't pass")) results
-      end;
+    if !verbose || !debug_on then
+      printf "*** Termination checking...\n";
+    let results = termination_check ast in
+    printf "\n";
+    List.iter
+      (fun (f,r) -> printf "%s Function \"%s\" %s termination check\n"
+	(if r then "[X]" else "[ ]")
+	f (if r then "passes" else "doesn't pass")) results;
       
     (* interpreting *)
-    if !verbose then printf "*** Interpreting...\n";
-    if !interprete_on then
+    if (!verbose || !debug_on) && !interpretor_on then
+      printf "*** Interpreting...\n";
+    if !interpretor_on then
       ignore (interpret ast);
-      
+
     close_files ()
   with
     | Typechecker.TypingException s -> failwith s

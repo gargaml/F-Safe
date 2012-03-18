@@ -66,13 +66,15 @@ and expression =
   | EApp of variable * atyp list * typed_expression list
   | ECase of typed_expression list * pattern list
 
-and typed_expression = { e : expression;
-			 t : atyp option }
-
+and typed_expression = 
+    {
+      e : expression;
+      t : atyp option
+    }
+      
 type fsafe =
     {
       types   : type_definition list;
       globals : global_definition list;
       entry   : typed_expression list
     }
- 
