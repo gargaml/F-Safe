@@ -303,6 +303,7 @@ let dot_of_callgraph graph =
 	 | e :: rest -> 
 	   let (calls,newcg) = look_for_call'' e t ip cg in
 	   let (restcalls,restcg) = callsinexprlist rest newcg in
+	   
 	   (calls @ restcalls , restcg) in
     (* let (calls,newcg) = 
        (List.fold_left (fun acc e -> look_for_call'' e t ip cg :: acc) [] exprlist*)
@@ -321,7 +322,9 @@ let dot_of_callgraph graph =
 		 let newcg_withcalls = CallGraph.add assign calls newcg in
 		 let (restcalls,restcg) = callinassigns newcg_withcalls rest in 
 		 (restcalls,restcg)
-	       | (_,e) -> look_for_call'' e t ip cg
+	       | (_,e) ->let (ecalls,ecg) =  look_for_call'' e t ip cg in
+			 let (restcalls,restcg) = callinassigns ecg rest in 
+			 (ecalls@restcalls,restcg)
 	 in
 	 let (assigncalls,assigncg) = callinassigns cg assignlist in
 	 let (bodycalls,bodycg) = callsinexprlist es assigncg in 
@@ -329,7 +332,7 @@ let dot_of_callgraph graph =
        | EApp(f, _, es) -> 
 	 Printf.printf "%s find in function\n" f;
 	 let treat_app =
-	   let calls = List.map (fun e -> look_for_call'' e t ip cg) es in
+	(*   let calls = List.map (fun e -> look_for_call'' e t ip cg) es in*)
 	   let op = List.map (fun e -> match e.e with
 	     | EVar s -> s
 	     | _ -> "anotherexp") es in
@@ -342,7 +345,7 @@ let dot_of_callgraph graph =
 		   | Some s -> s
 	     done;
 	   done;
-	   [(f, ip, op, m)]@calls
+	   [(f, ip, op, m)](*@calls*)
 	 in
 	 if CallGraph.mem f cg then	   
 
