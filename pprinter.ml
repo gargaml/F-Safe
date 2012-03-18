@@ -47,14 +47,20 @@ let string_of_parameter = function s -> s
 
 let rec string_of_ptyp = function
   | TVar v -> string_of_variable v
-  | TArrow (p1, p2) -> (string_of_ptyp p1) ^ " -> " ^ (string_of_ptyp p2)
+  | TArrow (ps, p) ->
+    let s1 = List.fold_left (fun acc p -> acc ^ string_of_ptyp p) "" ps in
+    let s2 = string_of_ptyp p in
+    "(" ^ s1 ^ ") -> " ^ s2
   | TConApp (t, []) -> t
   | TConApp (t, acs) -> 
       t ^ "[" ^ (string_of_list string_of_typed_variable ", " acs) ^ "]"
 
 and string_of_atyp = function
   | AVar (v) -> string_of_type_variable v
-  | AArrow (a1, a2) -> (string_of_atyp a1) ^ " -> " ^ (string_of_atyp a2)
+  | AArrow (a1, a2) ->
+    let s1 = List.fold_left (fun acc p -> acc ^ string_of_atyp p) "" a1 in
+    let s2 = string_of_atyp a2 in
+    "(" ^ s1 ^ ") -> " ^ s2
   | AConApp (t, []) -> t
   | AConApp (t, ats) -> t ^ "[" ^ (string_of_list string_of_atyp ", " ats) ^ "]"
 
