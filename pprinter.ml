@@ -23,10 +23,6 @@
 open Utils
 open Fsafe
 
-let ident = "  "
-
-let idtcpt = ref 0
-
 let vartag = "/************************************************/\n" ^ 
 "/*                Vars Defs                     */\n" ^ 
 "/************************************************/\n"
@@ -38,6 +34,10 @@ let typetag = "/************************************************/\n" ^
 let exprtag = "/************************************************/\n" ^ 
 "/*                Expressions                   */\n" ^ 
 "/************************************************/\n"
+
+(* WARNING : OCaml evaluates from RIGHT TO LEFT,
+   i.e this way "<-------" (thank you captain obvious),
+   indentation management depends on it*)
 
 let string_of_variable = function s -> s
 let string_of_type_variable = function s -> s
@@ -51,9 +51,10 @@ let rec string_of_ptyp = function
     let s1 = List.fold_left (fun acc p -> acc ^ string_of_ptyp p) "" ps in
     let s2 = string_of_ptyp p in
     "(" ^ s1 ^ ") -> " ^ s2
-  | TConApp (t, []) -> t
+  | TConApp (t, []) -> string_of_data_constructor t
   | TConApp (t, acs) -> 
-      t ^ "[" ^ (string_of_list string_of_typed_variable ", " acs) ^ "]"
+      string_of_data_constructor t
+      ^ "[" ^ (string_of_list string_of_typed_variable ", " acs) ^ "]"
 
 and string_of_atyp = function
   | AVar (v) -> string_of_type_variable v
@@ -61,38 +62,47 @@ and string_of_atyp = function
     let s1 = List.fold_left (fun acc p -> acc ^ string_of_atyp p) "" a1 in
     let s2 = string_of_atyp a2 in
     "(" ^ s1 ^ ") -> " ^ s2
-  | AConApp (t, []) -> t
-  | AConApp (t, ats) -> t ^ "[" ^ (string_of_list string_of_atyp ", " ats) ^ "]"
+  | AConApp (t, []) -> string_of_type_constructor t
+  | AConApp (t, ats) -> string_of_type_constructor t
+      ^ "[" ^ (string_of_list string_of_atyp ", " ats) ^ "]"
 
 and string_of_atyp_option = function
   | None -> ""
   | Some t -> string_of_atyp t
 
 and string_of_typed_variable = function
-  | (v, a) -> v ^ " : " ^ (string_of_atyp a)
+  | (v, a) -> (string_of_variable v)
+      ^ " : " ^ (string_of_atyp a)
 
 and string_of_typed_parameter = function
-  | (v, a) -> v ^ " : " ^ (string_of_atyp a)
+  | (p, a) -> string_of_parameter p
+      ^ " : " ^ (string_of_atyp a)
 
 and string_of_assignments ass =
   match ass with
     | [] -> ""
-    | [(tv, te)] -> (string_of_typed_variable tv) ^ " = " ^ (string_of_typed_expression 0 te)
-    | (tv, te)::q -> (string_of_typed_variable tv) ^ " = " ^ (string_of_typed_expression 0 te) ^ ", "
+    | [(tv, te)] -> (string_of_typed_variable tv) ^ " = " ^ (string_of_typed_expression te)
+    | (tv, te)::q -> (string_of_typed_variable tv) ^ " = " ^ (string_of_typed_expression te) ^ ", "
 
-and string_of_type_definition ind t =
+and string_of_type_definition  t =
   match t with
   | TDef (t, [], cs) ->
-      "type " ^ t ^ " = " ^ 
-	(string_of_list string_of_ptyp ("\n" ^ (fun_indent ind) ^ " | ") cs) ^ "\n\n"
+      "type " ^ (string_of_type_constructor t) ^ " = " ^ (id_min ())
+      ^ (string_of_list string_of_ptyp ("\n" ^ (id_print ()) ^ "| ") cs)
+      ^ "\n" ^ (id_add ())
   | TDef (t, vs, cs) ->
-      "type " ^ t ^ "[ " ^ (string_of_list string_of_type_variable ", " vs) ^ " ] = " ^ 
-	(string_of_list string_of_ptyp ("\n" ^ (fun_indent ind) ^ " | ") cs) ^ "\n\n"
+      "type " ^ (string_of_type_constructor t)
+      ^ "[ " ^ (string_of_list string_of_type_variable ", " vs) ^ " ]"
+      ^ (id_min ())
+      ^ " = " ^ (string_of_list string_of_ptyp ("\n" ^ (id_print ()) ^ "| ") cs)
+      ^ "\n" ^ (id_add ())
 
 and string_of_pattern = function
   | Pattern (fs,te) ->
-      (string_of_list string_of_filter ", " fs) ^ " -> " ^ (string_of_typed_expression 0 te)
-
+      (string_of_list string_of_filter ", " fs) ^ " =>\n"
+      ^ (id_print_min ()) ^ (string_of_typed_expression te)
+      ^ (id_add ())
+	  
 and string_of_filter f =
   match f with
     | PConApp (dc,[],[]) -> 
@@ -109,63 +119,66 @@ and string_of_filter f =
 	^ (string_of_list string_of_filter ", " fs) ^ " ) "
     | PVar tv -> string_of_typed_variable tv
 	
-and string_of_global_definition ind v =
+and string_of_global_definition  v =
   match v with
     | GDef (tv, te) ->
-	(fun_indent ind) ^ "def " ^ (string_of_typed_variable tv) ^
-	  " = \n" ^ (string_of_typed_expression (ind + 1) te)
+	"def " ^ (string_of_typed_variable tv)
+	^ " = \n" ^ (id_print_min ())
+	^ (string_of_typed_expression te) ^ (id_add ())
     | GRecDef (tvs,te) ->
-	(fun_indent ind) ^ "def "
-	^ (string_of_list string_of_typed_variable ", " tvs) ^
-	  " = \n" ^ (string_of_typed_expression (ind + 1) te)
+	"def " ^ (string_of_list string_of_typed_variable ", " tvs)
+	^ " = \n" ^ (id_print_min ())
+	^ (string_of_typed_expression te) ^ (id_add ())
 
-and string_of_expression ind e =
+and string_of_expression  e =
   match e with
-    | EVar v -> (fun_indent ind) ^ v
+    | EVar v -> (string_of_variable v)
     | EConApp (dc, ats, es) -> 
-	(fun_indent ind) ^ (string_of_data_constructor dc) ^ (if (List.length ats) = 0 
-	     then "" 
-	     else "[" ^ (string_of_list string_of_atyp ", " ats) ^ "]" ) ^ 
-	  (if (List.length es) = 0 
+	(string_of_data_constructor dc)
+	^ (if (List.length ats) = 0
 	   then "" 
-	   else " ( " ^ (string_of_list (string_of_typed_expression 0) ", " es) ^ " ) ")
+	   else "[" ^ (string_of_list string_of_atyp ", " ats) ^ "]" )
+	^ (if (List.length es) = 0
+	   then "" 
+	   else " ( "
+	     ^ (string_of_list (string_of_typed_expression ) ", " es)
+	     ^ " ) ")
     | ELet (ass, te) ->
-	(fun_indent ind) ^ "let (" ^ (string_of_assignments ass) 
-	^ " ) {\n"
-	^ (string_of_list (string_of_typed_expression 0) "," te) ^ "\n"
-	^ (fun_indent ind) ^ "}"
+	"let (" ^ (string_of_assignments ass) 
+	^ " ) {\n" ^ (id_print_min ())
+	^ (string_of_list (string_of_typed_expression ) "," te)
+	^ "\n" ^ (id_add_print ()) ^ "}"
     | EAbs (tvs, tps, te) ->
-	(fun_indent ind) ^ "fun " ^ 
+	"fun " ^ 
 	  (if (List.length tvs) = 0 
 	   then "" 
 	   else "[" ^ (string_of_list string_of_type_variable ", " tvs) ^ "]") 
 	^ " ( " ^ (string_of_list string_of_typed_parameter ", " tps) ^ " ) " 
-	^ " -> " ^ (string_of_typed_expression 0 te)
+	^ " ->\n" ^ (id_print_min ()) ^ (string_of_typed_expression te) ^ (id_add ())
     | EApp (v, ats, tes) ->
-	(fun_indent ind) ^ (string_of_variable v) ^ 
-	  (if (List.length ats) = 0 
+	(string_of_variable v)
+	^ (if (List.length ats) = 0 
 	   then "" 
-	   else "[" ^ (string_of_list string_of_atyp "," ats) ^ "]") ^ 
-	  " ( " ^ (string_of_list (string_of_typed_expression 0) ", " tes) ^ " ) "
+	   else "[" ^ (string_of_list string_of_atyp "," ats) ^ "]")
+	^ " ( " ^ (string_of_list (string_of_typed_expression ) ", " tes) ^ " ) "
     | ECase (tes, ps) ->
-	(fun_indent ind) ^ "case "
-	^ (string_of_list (string_of_typed_expression 0) ", " tes) ^ " {\n" 
-	^ (string_of_list string_of_pattern 
-	     ("\n" ^ (fun_indent (ind + 1)) ^ "| ") ps)
-	^ "\n" ^ (fun_indent ind) ^ "}"
+	"case " ^ (string_of_list (string_of_typed_expression ) ", " tes)
+	^ " {\n" ^ (id_print_min ()) ^ "| "
+	^ (string_of_list (string_of_pattern) ("\n" ^ (id_print ()) ^ "| ") ps)
+	^ "\n" ^ (id_add_print ()) ^ "}"
 	  
-and string_of_typed_expression ind e =
-  (fun_indent ind) ^ (string_of_expression 0 e.e) ^ " : " ^ (string_of_atyp_option e.t)
+and string_of_typed_expression e =
+  (string_of_expression e.e) ^ " : " ^ (string_of_atyp_option e.t)
 
 and string_of_fsafe f =
   let s1 = 
     List.fold_left 
-      (fun acc t -> acc ^ (string_of_type_definition 1 t) ^ "\n") "\n" f.types
+      (fun acc t -> acc ^ (string_of_type_definition t) ^ "\n\n") "\n" f.types
   and s2 = 
     List.fold_left 
-      (fun acc v -> acc ^ (string_of_global_definition 0 v) ^ "\n") "\n" f.globals
+      (fun acc v -> acc ^ (string_of_global_definition v) ^ "\n\n") "\n" f.globals
   and s3 = 
     List.fold_left 
-      (fun acc e -> acc ^ (string_of_typed_expression 0 e) ^ "\n") "\n" f.entry
+      (fun acc e -> acc ^ (string_of_typed_expression e) ^ "\n\n") "\n" f.entry
   in
-    typetag ^ s1 ^ "\n\n" ^ vartag ^ s2 ^ "\n\n" ^ exprtag ^ s3 ^ "\n\n"
+    typetag ^ s1 ^ "\n" ^ vartag ^ s2 ^ "\n" ^ exprtag ^ s3 ^ "\n"

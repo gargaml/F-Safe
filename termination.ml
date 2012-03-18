@@ -74,7 +74,7 @@ let termination_check fsafe =
   
   (* callgraph building *)
   if !verbose then printf "   *** Building callgraph...\n";
-  let g = Callgraph.build_callgraph fsafe functions in
+  let g = Callgraph.build_callgraph fsafe functions CallGraph.empty in
   if !terminator_on then (
     Callgraph.dot_of_callgraph g;
     printf "callgraph saved in callgraph.dot\n"

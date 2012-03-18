@@ -19,10 +19,10 @@
 #                                                                             #
 ###############################################################################
 
-SOURCES = lexer.mll utils.ml parser.mly config.ml relationmatrix.ml callgraph.ml cycle.ml debug.ml fsafe.ml pprinter.ml wftype.ml typechecker.ml termination.ml handler.ml interpret.ml main.ml
+SOURCES = lexer.mll utils.ml parser.mly config.ml relationmatrix.ml pprinter.ml callgraph.ml cycle.ml fsafe.ml wftype.ml typechecker.ml termination.ml interpret.ml handler.ml main.ml
 EXEC = fsafe
 
-CAMLC = ocamlc
+CAMLC = ocamlc -annot
 CAMLOPT = ocamlopt
 CAMLDEP = ocamldep
 CAMLLEX = ocamllex
@@ -101,6 +101,8 @@ clean:
 	rm -f *.cm[iox] *~ .*~ #*#
 	rm -f $(EXEC)
 	rm -f $(EXEC).opt
+	rm -f callgraph.dot callgraph.pdf
+	rm -f *.annot
 
 depend: $(SOURCES2)
 	$(CAMLDEP) *.mli *.ml > .depend

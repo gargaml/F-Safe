@@ -1,0 +1,7 @@
+type nat = Zero | Succ(n:nat)
+
+def un:nat = Succ(Zero)
+def deux:nat = Succ(Succ(Zero))
+
+un,
+deux

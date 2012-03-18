@@ -26,27 +26,33 @@ open Printf
 
 type cycle = (string*edge)list
 
+module CMap = Map.Make(
+struct 
+  type t = string
+  let compare = String.compare
+end);;
+
 let rec explore_couple callgraph cycle history = function
   | funname, edges ->
     match edges with 
       | [] -> []
       | edge :: rest -> 
-	let rec explore_edge fun_name edge callgraph cycle history =
-	  let rec filter_cycle fname = function
-	    | (calledname,edge)::rest ->  if (String.compare calledname fname) == 0 then (fname,edge)::rest else filter_cycle fname rest
+	let rec explore_edge fname edge history =
+	  let rec filter_cycle  = function
+	    | (calledname,edge)::rest ->  if (String.compare calledname fname) == 0 then (fname,edge)::rest else filter_cycle rest
 	    |[] -> failwith "error here"
 	  in
 	  match edge with 
 	    | (calledname,_,_,_) ->
-	      let next_cycle = cycle @ [(fun_name,edge)] in
+	      let next_cycle = cycle @ [(fname,edge)] in
 	      let next_edges = CallGraph.find calledname callgraph in
 	      let next_cycles = calledname, next_edges in
 	      if List.mem calledname history then
-		[filter_cycle calledname next_cycle]
+		[filter_cycle next_cycle]
 	      else
 		explore_couple callgraph next_cycle history next_cycles
 	in
-	explore_edge funname edge callgraph cycle (funname::history)
+	explore_edge funname edge  (funname::history)
 	@ explore_couple  callgraph cycle (funname::history) (funname, rest)
 
 
@@ -82,5 +88,45 @@ let rec  string_of_cycles =
     | (fname, cycle)::rest-> fname ^ " => { " ^ 
       (string_of_cyclelist cycle) ^ " } \n"  ^ (string_of_cycles rest)
  
-     
-     
+    (* 
+let rec extand_cyclelist cyclelist = 
+  let rec buildcyclemap cyclemap cyclelist = 
+    match cyclelist with 
+      | [] -> cyclemap
+      | cycle::rest ->
+	let rec buildmap cycle map = match cycle  with 
+	  |(f,_)::rest  -> 
+	    let newmap = 
+	      if CMap.mem f then 
+		CMap.add f cycle::(CMap.find f map) map 
+	      else 	CMap.add f [cycle] map 
+       	    in buildmap rest newmap
+	  |[] -> map
+	in
+	buildcyclemap (extandmap cycle cyclemap) rest
+  in 
+  let extandcyclemap cyclemap = 
+    let extand_cycle bindings history map =
+      match bindings with 
+	| [] -> map
+	|  (f,cyclelist)::rest -> 
+	  let rec treat_cycle  cycle beginning fextand map =
+	    match cycle with 
+	      |[] -> []
+	      |(calling,_)::rest -> 
+		let expand_cycle  beginning expanders = 
+		  List.map (
+	  in
+	  let rec treat_cyclelist cyclelist history map = 
+	  match cyclelist with
+	    |[] -> []
+	    | cycle::rest -> if List.length = 1 then 
+		treat_cyclelist rest cycle::history map 
+	      else 
+		treat_cycle cycle [] history@rest map @ treat_cyclelist rest cycle::history map
+
+let cyclemap = newcyclemap CMap.empty cyclelist
+
+
+CMap.fold (fun key cyclelist acc -> cyclelist@acc) extanded_cyclemap [] 
+    *)

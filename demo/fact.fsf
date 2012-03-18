@@ -20,6 +20,4 @@ def fact(x:nat) : nat =
 	 let (f:nat = fact(n)) { mult(x, f) }
     }
 
-add(Zero, Zero),
-mult(Succ(Zero), Zero),
 fact(Succ(Succ(Succ(Zero))))

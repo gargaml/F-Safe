@@ -24,7 +24,7 @@ open Relationmatrix
 open Fsafe
 open Printf
 open Utils
-
+open Pprinter
 
 module CallGraph = Map.Make(
 struct 
@@ -39,9 +39,20 @@ type out_param = string
 type edge = string * in_param list * out_param list * relationmatrix
 
 
-type tree =
+type tree = 
   | Node of string * tree list
 
+  let rec  string_of_calls f = function 
+    | [] ->""
+    | (g,_,_,_) :: rest -> " ( "^ f^ " -> "^ g ^" ) " ^(string_of_calls f rest)
+
+
+let string_of_callgraph callgraph = 
+
+  let rec string_of_keys = function 
+    | [] ->""
+    | (f,calls) :: rest -> "  "^ f^ " => { " ^(string_of_calls f calls)^" }\n" ^ (string_of_keys rest)
+  in string_of_keys (CallGraph.bindings callgraph )
 let init_tree ip =
   Node("", (List.map (fun (v, _) -> Node(v, [])) ip))
 
@@ -76,96 +87,13 @@ let rec look_for_call e =
 	   [] a)
 	@ (List.flatten(List.fold_left (fun acc b -> look_for_call b :: acc) [] b))
       | EApp(f, _, es) -> 
+
 	List.fold_left (fun acc e -> (look_for_call e)@acc) [f] es
       | ECase(es, fs) ->
 	(List.fold_left (fun acc e -> (look_for_call e)@acc) [] es)
 	  @ (List.fold_left
 	       (fun acc (Pattern(_,e)) -> (look_for_call e)@acc) [] fs)
       | _ -> []
-
-let rec look_for_call' e t ip =
-    match e.e with
-      | EConApp(_, _, es) ->
-	List.fold_left (fun acc e -> (look_for_call' e t ip)@acc) [] es
-      | ELet(a, b) ->
-	(List.fold_left
-	   (fun acc (_,exp) -> (look_for_call' exp t ip)@acc) 
-	   [] a)
-	@ (List.flatten(List.fold_left (fun acc b-> look_for_call' b t ip :: acc) [] b))
-     
-      | EApp(f, _, es) -> 
-	let op = List.map (fun e -> match e.e with
-	  | EVar s -> s
-	  | _ -> failwith "expression in call not supported") es in
-	let m = empty (List.length ip) (List.length op) in
-	for i = 0 to m.nb_l - 1 do
-	  for j = 0 to m.nb_c - 1 do
-	    m.data.(j).(i) <-
-	      match get_relation t (List.nth ip j) (List.nth op i) with
-		| None -> Unknown
-		| Some s -> s
-	  done;
-	done;
-	[(f, ip, op, m)]
-      | ECase(es, fs) ->
-	let p = match (List.hd es).e with
-	  | EVar s -> s
-	  | _ -> failwith "expression in match not supported" in
-	let cs = 
-	  let rec lookforcall'_filter acc = function  
-	    | PVar(v, _) -> v::acc
-	    | _ -> failwith 
-	      "nested pattern in deconstruction not supported"
-	  in 
-	  let rec lookforcall'_pattern acc = function
-	    | Pattern(p,_) 	 ->
-	      match p with
-		| [] -> acc
-		| PConApp(_, _, ls)::rest ->
-		  let cs1 = List.fold_left lookforcall'_filter [] ls
-		    in
-		    cs1 @ (List.fold_left lookforcall'_filter acc rest) 
-		  | _ -> failwith 
-		    "weird patterns in deconstruction not supported"
-	  in
-	  List.fold_left lookforcall'_pattern [] fs
-	    
-	in
-	let t' = List.fold_left (fun t c -> add_child t p c) t cs in
-	(List.fold_left (fun acc (Pattern(_,e)) -> (look_for_call' e t' ip)@acc) [] fs)
-      | _ -> []
-
-let build_callgraph fsafe fs =
-  let build f =
-    let vd = List.hd (List.filter (fun x ->
-      match x with
-	| GDef((v,_), _) when v = f -> true
-	| GRecDef(v,_) -> 
-	  let rec find_recdef = function
-	    | [] -> false 
-	    | (v,_):: rest -> if v = f then true else find_recdef rest
-	  in
-	  find_recdef v
-	| _ -> false) fsafe.globals) in
-    match vd with
-      | GDef(_,e) ->
-	begin match e.e with
-	  | EAbs(_,ip,e) ->
-	     let tree =  init_tree ip in
-	     look_for_call' e tree (List.map (fun (v, _) -> v) ip)
-	  | _ -> []
-	end
-      | GRecDef(v,e) ->[](*
-	match (e.e) with
-	  | ELet (vi,es) ->
-	    match (v,es) with 
-	      | (v::_,es *)
-  
-  in
-  List.fold_left (fun acc f ->
-    let edges = build f in
-    CallGraph.add f edges acc) CallGraph.empty fs
-    
 
 let dot_of_callgraph graph =
   let oc = open_out "callgraph.dot" in
@@ -177,4 +105,189 @@ let dot_of_callgraph graph =
 	(string_of_relationmatrix' m)) ls) graph;
   fprintf oc "}\n";
   close_out oc
+
+ let rec build_cg_of_f ast globals callgraph f = 
+
+    match globals with 
+      | [] -> callgraph
+      | GDef((name,_),e) :: _ when name = f -> 
+	begin match e.e with
+	  | EAbs(_,ip,e) ->    
+	    let tree =  init_tree ip in
+	    let (calls,newcg) = 
+	      (look_for_call'' e tree (List.map (fun (v, _) -> v) ip) 
+		 (CallGraph.add f [] callgraph) ast.globals ast)
+	    in 
+	   
+	    CallGraph.add f calls newcg
+	      
+	  | _ -> callgraph
+	end 
+      | GRecDef(v,e):: rest  -> 
+	begin
+	match e.e with 
+	  | ELet(assigns,values) -> 
+
+	    let rec look_in_assigns f = function 
+	      | [] -> callgraph
+	      | ((var,_),exp)::_ when var = f -> 
+		begin
+		match exp.e with
+		  | EAbs(_,ip,e)  ->
+		    let tree =  init_tree ip in
+		    let (calls,newcg) = 
+		      (look_for_call'' e tree 
+			 (List.map (fun (v, _) -> v) ip) 
+			 (CallGraph.add f [] callgraph)
+			 ast.globals ast)
+		    in   
+		
+		    CallGraph.add f calls newcg
+		  | _ -> callgraph
+		end
+	      | _ ::rest -> look_in_assigns f rest 
+	    in    
+	    let rec look_for_rec = function
+	      | ((v,_)::_,e::_) when v = f ->  
+		begin	match e.e with
+		 	  | EAbs(_,ip,e) ->
+			    let tree =  init_tree ip in
+			    let (calls,newcg) = 
+			      (look_for_call'' e tree 
+				 (List.map (fun (v, _) -> v) ip) 
+				 (CallGraph.add f [] callgraph)
+				 ast.globals ast)
+			    in 
+		
+			    CallGraph.add f calls newcg
+			     
+			  | EVar(s) ->let newcg =  look_in_assigns s assigns
+				      in
+				      CallGraph.add f [(s,[],[],Relationmatrix.empty 0 0)] newcg
+			  | _ -> callgraph
+		end
+	      | (_::rest,e::rest') ->
+		begin
+		  match e.e with 
+		    |EVar(s) when s=f -> look_in_assigns s assigns
+		    | _ -> look_for_rec (rest,rest')
+		end
+	      | ([],[]) -> callgraph
+	      | _ -> failwith "should not happen"
+	    in   
+	    look_for_rec (v,values)
+	  | _ -> build_cg_of_f ast rest callgraph f
+	end
+	  | _::rest -> build_cg_of_f ast rest callgraph f
+      
+ and look_for_call'' expr t ip cg glob ast = 
+   let rec look_for_call'' expr t ip cg = 
+ 
+     let rec callsinexprlist exprlist cg =
+       match exprlist with 
+	 | [] -> ([],cg)
+	 | e :: rest -> 
+	   let (calls,newcg) = look_for_call'' e t ip cg in
+	   let (restcalls,restcg) = callsinexprlist rest newcg in
+	   
+	   (calls @ restcalls , restcg) in
+
+     match expr.e with 
+       | EConApp(_,_,es) when es != [] -> callsinexprlist es cg
+       | ELet (assignlist,es) -> 
+	 let rec callinassigns  cg = function 
+	   | [] -> ([],cg)
+	   | ((assign,_),exp):: rest -> 
+	     match (exp.e,exp) with 
+	       | (EAbs(_,ip,e),_) ->	       
+		 let tree =  init_tree ip in
+		 let (calls,newcg) = 
+		   look_for_call'' e tree (List.map (fun (v, _) -> v) ip) 
+		     (CallGraph.add assign [] cg) in
+		 let newcg_withcalls = CallGraph.add assign calls newcg in
+		 let (restcalls,restcg) = callinassigns newcg_withcalls rest in 
+		 (restcalls,restcg)
+	       | (_,e) ->let (ecalls,ecg) =  look_for_call'' e t ip cg in
+			 let (restcalls,restcg) = callinassigns ecg rest in 
+			 (ecalls@restcalls,restcg)
+	 in
+	 let (assigncalls,assigncg) = callinassigns cg assignlist in
+	 let (bodycalls,bodycg) = callsinexprlist es assigncg in 
+	 (assigncalls@bodycalls,bodycg)
+       | EApp(f, _, es) -> 
+
+	 let treat_app =
+	(*   let calls = List.map (fun e -> look_for_call'' e t ip cg) es in*)
+	   let op = List.map (fun e -> match e.e with
+	     | EVar s -> s
+	     | _ -> "anotherexp") es in
+	   let m = empty (List.length ip) (List.length op) in
+	   for i = 0 to m.nb_l - 1 do
+	     for j = 0 to m.nb_c - 1 do
+	       m.data.(j).(i) <-
+		 match get_relation t (List.nth ip j) (List.nth op i) with
+		   | None -> Unknown
+		   | Some s -> s
+	     done;
+	   done;
+	   [(f, ip, op, m)](*@calls*)
+	 in
+	 if CallGraph.mem f cg then	   
+
+	   
+	   begin
+	 
+	     (treat_app, cg)
+	   end
+
+	 else 
+	   begin
+
+	     (treat_app,build_cg_of_f ast glob cg f ) 
+	   end
+       | ECase(es, fs) ->
+	 let p = match (List.hd es).e with
+	   | EVar s -> s
+	   | _ -> failwith "expression in match not supported" in
+	 let cs = 
+	   let rec lookforcall_filter acc = function  
+	     | PVar(v, _) -> v::acc
+	     | PConApp(_, _, ls) ->
+	       let cs1 = List.fold_left lookforcall_filter [] ls
+	       in
+	       cs1
+	   in 
+	   let lookforcall_pattern acc = function
+	     | Pattern(p,_) 	 ->
+	       match p with
+		 | [] -> acc
+		 | PConApp(_, _, ls)::rest ->
+		   let cs1 = List.fold_left lookforcall_filter [] ls
+		   in
+		   cs1 @ (List.fold_left lookforcall_filter acc rest) 
+		 | _ -> failwith 
+		   "weird patterns in deconstruction not supported"
+	   in
+	   List.fold_left lookforcall_pattern [] fs
+	     
+	 in
+ 	 let t' = List.fold_left (fun t c -> add_child t p c) t cs in
+	 (List.fold_left (fun (acc,cg) (Pattern(_,e)) -> 
+	   let (calls,newcg)= look_for_call'' e t' ip cg
+	  in (calls@acc,(CallGraph.fold (fun f calls cg -> CallGraph.add f calls cg) newcg cg) )) ([],cg) fs)
+       | _ -> ([],cg)
+   in
+ 
+   look_for_call'' expr t ip cg
+     
+
+
+let rec build_callgraph ast mainfuns cg  = 
+  match mainfuns with
+    | [] ->   cg
+    | mainfun :: rest -> 
+
+
+      build_callgraph ast rest (build_cg_of_f ast ast.globals cg mainfun)
+
 

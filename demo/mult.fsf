@@ -13,4 +13,4 @@ def mult(x:nat, y:nat) : nat =
 	 let (m:nat = mult(n, y)) { add(m, y) }
     }
 
-mult(add(Succ(Zero), Succ(Succ(Zero))), Succ(Zero))
+mult(add(Succ(Zero), Succ(Succ(Zero))), Succ(Succ(Zero)))
