@@ -45,3 +45,55 @@ let rec suppr_indent i t =
     | ( 0, _) -> t
     | ( _, t) -> (suppr_indent (i - 1) (String.sub t 2 ((String.length t) - 2)))
 
+let idt = "  "
+
+let icpt = ref 0
+
+let debug_test () = " icpt is "^ (string_of_int !icpt) ^") "
+
+let rec print_count txt nb=
+  match nb with
+    | 0 -> ""
+    | nb when nb<0 -> failwith "negative icpt number"
+    | nb -> txt ^ (print_count txt (nb-1))
+  
+(* increases indent counting then print*)
+let id_add_print () =
+  icpt:= !icpt +1;
+  (print_count idt !icpt)
+(*  ^ " (add_print "^  debug_test ();*)
+
+(* print then increases indent counting*)
+and id_print_add () =
+  icpt:= !icpt +1;
+  (print_count idt ((!icpt) - 1))
+(*  ^ " (print_add " ^ debug_test ();*)
+
+(* decreases indent counting then print*)
+and id_min_print () =
+  icpt:= !icpt -1;
+  (print_count idt (!icpt))
+(*  ^ " (min_print" ^debug_test ();*)
+
+(* print then decreases indent counting*)
+and id_print_min () =
+  icpt:= !icpt -1;
+  (print_count idt ((!icpt) + 1))
+(*  ^ " (print_min" ^debug_test ();*)
+
+(* print icpt indentations *)
+and id_print () =
+  (print_count idt (!icpt))
+(*  ^" (print" ^debug_test ();*)
+
+(* increases icpt *)
+and id_add () =
+  icpt:= (!icpt) + 1;
+  ""
+(*  ^" (id_add" ^ debug_test ();*)
+
+(* decreases icpt *)
+and id_min () =
+  icpt:= (!icpt) - 1;
+  ""
+(*  ^ " (id_min" ^ debug_test ();*)
