@@ -35,8 +35,6 @@
 %token LPAREN RPAREN LBRACKET RBRACKET LBRACE RBRACE 
 %token COMMA COLON PIPE EQUAL EOF ARROW TYPEARROW
 
-%right TYPEARROW
-
 %start fsafe
 %type <Fsafe.fsafe> fsafe
 
@@ -53,7 +51,7 @@ annotation:
       { AConApp (i, []) }
   | i = IDENT LBRACKET ans = annotations RBRACKET
       { AConApp (i, ans) }
-  | a1 = annotation TYPEARROW a2 = annotation
+  | LPAREN a1 = annotations RPAREN TYPEARROW a2 = annotation
       { AArrow (a1, a2) }
 
 annotations:

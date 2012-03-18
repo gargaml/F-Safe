@@ -69,9 +69,6 @@ let handle filename =
     let _ (*dcenv*) = Wftype.build_tscheme_map ast in
     
     (* type checking *)
-    (*if !verbose || !debug_on then
-      printf "*** Type checking...\n";
-    let ast = typecheck ast dcenv in*)
     
     (* termination checking *)
     if !verbose || !debug_on then
@@ -91,5 +88,4 @@ let handle filename =
 
     close_files ()
   with
-    | Typechecker.TypingException s -> failwith s
     | x -> close_files (); raise x

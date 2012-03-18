@@ -36,12 +36,12 @@ and typed_parameter = parameter * atyp
 
 and ptyp =
   | TVar of type_variable
-  | TArrow of ptyp * ptyp
+  | TArrow of ptyp list * ptyp
   | TConApp of data_constructor * typed_variable list
 
 and atyp =
   | AVar of type_variable
-  | AArrow of atyp * atyp
+  | AArrow of atyp list * atyp (* do we need to modify the arrow ?! *)
   | AConApp of type_constructor * atyp list
 
 type type_definition = 
