@@ -23,29 +23,91 @@
 open Fsafe
 open Wftype
 
-exception TypingException of string
-
-(*let type_decorate ({ types = ts ; globals = gs ; entry = es } as ast) dcenv =
-  let rec f env { e = e ; t = t } = 
-    match e with
-      | EVar v -> { e = e ; t = lookup env v }
-      | EConApp (dc, ass, tes) -> 
-      | ELet (ts, te) ->
-	let ts' = List.map (f env) ts in
-	let te' = f env 
+let decorate_ast dcenv { types = ts; globals = gs; entry = es } =
+  let rec decorate aenv te =
+    match te.e with
+      | EVar v -> { e = EVar v; t = Some (SMap.find v aenv) }
+      | EConApp (dc, ans, tes) -> (
+	match SMap.find dc dcenv with
+	  | TScheme (_, _, a) -> (
+	    match a with
+	      | (AConApp (tc, _)) as a ->
+		let tes' = List.map (decorate aenv) tes in
+		{ e = EConApp (dc, ans, tes'); t = Some a }
+	      | _ -> failwith "Unexpected annotation"
+	  )
+      )
+      | ELet (tvtes, tes) ->
+	let f (tv, te) = (tv, decorate aenv te) in
+	let add acc ((v, a), _) = SMap.add v a acc in
+	let tvtes' = List.map f tvtes in
+	let aenv' = List.fold_left add aenv tvtes' in
+	let tes' = List.map (decorate aenv') tes in
+	{ e = ELet (tvtes', tes'); t = (List.hd tes).t }
       | EAbs (tvs, tps, te) ->
-      | EApp (v, ass, tes) ->
+	let add acc (p, a) = SMap.add p a acc in
+	let aenv' = List.fold_left add aenv tps in
+	let te' = decorate aenv' te in
+	let ts = List.map snd tps in (
+	match te'.t with
+	  | Some a ->
+	    { e = EAbs (tvs, tps, te'); t = Some (AArrow (ts, a)) }
+	  | None -> failwith "Missing annotation"
+	)
+      | EApp (v, ans, tes) ->
+	let tes' = List.map (decorate aenv) tes in (
+	  match SMap.find v aenv with
+	    | AArrow (tp, r) -> { e = EApp (v, ans, tes'); t = Some r }
+	    | _ -> failwith "An abstraction was expected"
+	)
       | ECase (tes, ps) ->
+	let tes' = List.map (decorate aenv) tes in
+	let ps' = decorate_patterns aenv ps in
+	match List.hd ps' with
+	  | Pattern (_, { e = _; t = ao }) -> { e = ECase (tes', ps'); t = ao }
+	    
+  and decorate_patterns aenv ps =
+    let rec add_filters aenv = function
+      | [] -> aenv
+      | f :: fs ->
+	let aenv' = add_filter aenv f in
+	add_filters aenv' fs
+    and add_filter aenv = function
+      | PConApp (_, _, fs) ->
+	add_filters aenv fs
+      | PVar (v, a) ->
+	SMap.add v a aenv 
+    in
+    let decorate_pattern (Pattern (fs, te)) =
+      let aenv' = add_filters aenv fs in
+      Pattern (fs, decorate aenv' te)
+    in
+    List.map decorate_pattern ps
   in
-  let g (gacc, gmacc) = function
-    | GDef (tv, te) -> 
-    | GRecDef (tvs, te) ->
+  let decorate_definition aenv d =
+    match d with
+      | GDef ((v, t), te) ->
+	let te' = decorate aenv te in (
+	match te' with
+	  | { e = _; t = Some a } ->
+	    let aenv' = SMap.add v a aenv in
+	    let d' = GDef ((v, t), te') in
+	    aenv', d'
+	  | _ -> failwith "Unexpected..."
+	)
+      | GRecDef (tvs, te) -> failwith "Not yet..."
   in
-  let (globals, gamma) = List.fold_left g ([], SMap.empty) gs in
-  { types = ts ; globals = globals ; entry = es }*)
-
-let typecheck ast dcenv =
-  (*let { types = ts ; globals = gs ; entry = es } = type_decorate ast dcenv in
-  { types = ts ; globals = gs ; entry = es }*)
-  ast
-
+  let decorate_definitions aenv gs =
+    let rec loop aenv globals = function
+      | [] -> aenv, List.rev globals
+      | d :: ds ->
+	let aenv', d' = decorate_definition aenv d in
+	loop aenv' (d' :: globals) ds
+    in loop aenv [] gs
+  in
+  let decorate_expressions aenv es =
+    List.map (decorate aenv) es
+  in
+  let aenv, gs' = decorate_definitions SMap.empty gs in
+  let es' = decorate_expressions aenv es in
+  { types = ts; globals = gs'; entry = es' }

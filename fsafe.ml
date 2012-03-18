@@ -36,12 +36,12 @@ and typed_parameter = parameter * atyp
 
 and ptyp =
   | TVar of type_variable
-  | TArrow of ptyp * ptyp
+  | TArrow of ptyp list * ptyp
   | TConApp of data_constructor * typed_variable list
 
 and atyp =
   | AVar of type_variable
-  | AArrow of atyp * atyp
+  | AArrow of atyp list * atyp (* do we need to modify the arrow ?! *)
   | AConApp of type_constructor * atyp list
 
 type type_definition = 
@@ -66,13 +66,15 @@ and expression =
   | EApp of variable * atyp list * typed_expression list
   | ECase of typed_expression list * pattern list
 
-and typed_expression = { e : expression;
-			 t : atyp option }
-
+and typed_expression = 
+    {
+      e : expression;
+      t : atyp option
+    }
+      
 type fsafe =
     {
       types   : type_definition list;
       globals : global_definition list;
       entry   : typed_expression list
     }
- 
