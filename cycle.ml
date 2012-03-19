@@ -32,66 +32,113 @@ struct
   let compare = String.compare
 end);;
 
-let rec extand_cyclelist (cyclelist:(string * (cycle list)) list) (extanded_cyclelist:(string * (cycle list)) list) = 
-  let rec buildcyclemap (cyclemap:(cycle list) CMap.t) (cyclelist:(string*cycle list) list) = 
+let rec  string_of_cycles =
+  let rec string_of_cyclelist =
+    let rec string_of_cycle  = 
+      function
+	| [] -> ")"
+	| [(calling, (called, _, _, _))] ->
+	  calling ^ " -> " ^ called ^ ")" 
+	| (calling, (called, _, _, _)) :: rest ->
+	  calling ^ " -> " ^ called ^ " , " ^ (string_of_cycle rest)
+    in
+    function
+      | [] -> ""
+      | cycle :: rest -> 
+	"(" ^ (string_of_cycle cycle) ^ (string_of_cyclelist rest)
+  in
+  function 
+    | [] -> "no cycle in your program\n"
+    | [(fname, cycle)] ->
+      fname ^ " => { " ^ (string_of_cyclelist cycle) ^ " }"
+    | (fname, cycle)::rest-> fname ^ " => { " ^ 
+      (string_of_cyclelist cycle) ^ " } \n"  ^ (string_of_cycles rest)
+ 
+
+
+
+let rec extand_cyclelist cyclelist extanded_cyclelist = 
+  let rec buildcyclemap cyclemap  cyclelist = 
     match cyclelist with 
       | [] -> cyclemap
-      | (_,cycle)::rest ->
-	let rec buildmap cycle (map:(cycle list) CMap.t) = match cycle  with 
-	  |  head ::rest  ->
+      | cycle::rest ->
+	let rec buildmap cycle map = match cycle  with 
+	  |  head ::rest  -> 
 	    begin
 	      match head with 
-		| (f,_)::_-> 
+		| (f,_)-> 
 		  let newmap = 
 		    if CMap.mem  f map then 
-		      CMap.add f (head::(CMap.find f map)) map 
+		      CMap.add f (cycle::(CMap.find f map)) map 
 		    else 
-		      CMap.add f [head] map 
+		      CMap.add f [cycle] map 
 			
-       		  in buildmap rest newmap  
-	      | [] -> map
+       		  in  newmap
+		  
 	    end
-	  |[] -> map
+	  | [] -> map
 	in
 	buildcyclemap (buildmap cycle cyclemap) rest
   in 
-  let extandcyclemap (cyclelist:(string*cycle list) list)=
-    let rec extand_cycle (bindings:(string*cycle list) list) (history:cycle list) map =
+  let extandcyclemap cyclelist =
+    let rec extand_cycle bindings history map =
       match bindings with 
 	| [] -> history
 	|  (f,cyclelist)::rest -> 
-	  let rec treat_cycle  (cycle:cycle) (beginning:cycle list ) (fextand:cycle  list) map =
+	  let rec treat_cycle  cycle beginning fextand map =
 	    match cycle with 
-	      |[] -> beginning
+	      |[] -> beginning		   
 	      |(calling,cg)::rest -> 
-		let expand_cycle  (beginners:cycle list) (expanders:cycle  list) = 
-		  let cycle_expanders = List.fold_left (fun acc expand -> (expand@[(calling,cg)]) :: acc) [] expanders in
+		let expand_cycle  beginners expanders = 
+		  let cycle_expanders = if List.length expanders = 0 then
+		      [ [(calling,cg)]]
+		    else 
+		      List.fold_left 
+			(fun acc expand -> (expand@[(calling,cg)] ) :: acc)
+			[] expanders 
+		  in
 		  let cycle_expanders_beginners = 
-		    List.fold_left (fun acc beginner -> 
-		      List.fold_left ( fun acc' expand_cycle ->
-			(beginner@expand_cycle) :: acc')
-			acc cycle_expanders)
-		      [] beginners
+		    if beginners=[] then 
+		      cycle_expanders
+		    else
+		      let cycle_beginners =
+			List.fold_left
+			  (fun acc expand -> (expand@[(calling,cg)] ) :: acc)
+			  [] beginning 
+		      in
+		      ( List.fold_left (fun acc beginner -> 
+			List.fold_left ( fun acc' expand_cycle->
+			  (beginner@expand_cycle) :: acc')
+			  acc cycle_expanders)
+			  [] beginners) @ cycle_beginners
 		  in
 		  cycle_expanders_beginners
 		in
-		  if calling = f then
-
-		    treat_cycle rest (expand_cycle beginning fextand) fextand map
-		  else
-		    treat_cycle rest (expand_cycle beginning (CMap.find calling map)) fextand map
-
+		if calling = f
+		then
+		  treat_cycle rest (expand_cycle beginning fextand) fextand map
+		else
+		  if(CMap.mem calling map) 
+		  then 
+		    treat_cycle rest
+		      (expand_cycle beginning (CMap.find calling map)) 
+		      fextand map
+		  else 
+		    treat_cycle rest (expand_cycle beginning []) fextand map
 	  in
-   
-	  let rec treat_cyclelist (cyclelist: cycle list) (fextand:cycle list) map = 
-	  match cyclelist with
-	    |[] -> fextand
-	    | cycle::rest -> if List.length cycle  = 1 then 
-		treat_cyclelist rest (cycle::fextand) map 
-	      else 
-		(treat_cycle cycle [] (fextand@ rest) map) @ (treat_cyclelist rest (cycle::fextand) map)
+	  let rec treat_cyclelist cyclelist fextand map = 
+	    match cyclelist with
+	      |[] -> []
+	      | cycle::rest -> if List.length cycle  = 1 
+		then
+		  cycle ::  treat_cyclelist rest (cycle::fextand) map 
+		    
+		else 			   
+		  cycle
+		  :: (treat_cycle  cycle [] (fextand@rest) map)
+		  @ (treat_cyclelist rest (cycle::fextand) map)
 	  in
-	  let new_history =  (treat_cyclelist cyclelist [] map)@history
+	  let new_history =  history@ (treat_cyclelist cyclelist [] map)
 	  in
 	  extand_cycle rest new_history map
     in
@@ -99,12 +146,12 @@ let rec extand_cyclelist (cyclelist:(string * (cycle list)) list) (extanded_cycl
     in
     let extanded_map = extand_cycle (CMap.bindings cyclemap) [] cyclemap
     in
-
     extanded_map
   in
- match cyclelist with 
-   | [] -> extanded_cyclelist
-   | (f,cycles)::rest -> extand_cyclelist rest ((f,(extandcyclemap [(f,cycles)]))::extanded_cyclelist)
+  match cyclelist with 
+    | [] -> extanded_cyclelist
+    | (f,cycles)::rest -> extand_cyclelist rest 
+      ((f,(extandcyclemap cycles))::extanded_cyclelist)
 
 let rec explore_couple callgraph cycle history = function
   | funname, edges ->
@@ -142,29 +189,6 @@ let get_all_cycles callgraph mainfunc =   let main_callgraphs =
 extand_cyclelist cycles_list []
 	   
 
-
-let rec  string_of_cycles =
-  let rec string_of_cyclelist =
-    let rec string_of_cycle  = 
-      function
-	| [] -> ")"
-	| [(calling, (called, _, _, _))] ->
-	  calling ^ " -> " ^ called ^ ")" 
-	| (calling, (called, _, _, _)) :: rest ->
-	  calling ^ " -> " ^ called ^ " , " ^ (string_of_cycle rest)
-    in
-    function
-      | [] -> ""
-      | cycle :: rest -> 
-	"(" ^ (string_of_cycle cycle) ^ (string_of_cyclelist rest)
-  in
-  function 
-    | [] -> "no cycle in your program\n"
-    | [(fname, cycle)] ->
-      fname ^ " => { " ^ (string_of_cyclelist cycle) ^ " }"
-    | (fname, cycle)::rest-> fname ^ " => { " ^ 
-      (string_of_cyclelist cycle) ^ " } \n"  ^ (string_of_cycles rest)
- 
 
 
 
