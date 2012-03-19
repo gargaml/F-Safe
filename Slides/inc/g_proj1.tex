@@ -1,7 +1,9 @@
 \section{Organisation et Méthode}
 
-\begin{frame}
-  \begin{block}{Rétrospective}
+\subsection{Rappel}
+
+\begin{frame}{Rétrospective}
+  \begin{block}{}
     \begin{itemize}
       \item Scrum
         \begin{itemize}
@@ -13,13 +15,15 @@
           \item Pair-programming
           \item Pair-Review + Dir. Technique Review
           \item Roulement des binômes
-          \item Convention de code
+          \item Conventions de code
           \item Refactoring
         \end{itemize}
-      \item Itération avec le client
+      \item Itérations avec le client
    \end{itemize}
   \end{block}
 \end{frame}
+
+\subsection{Que reste t-il de ces methodes?}
 
 \begin{frame}{Scrum}
   \begin{block}{Que reste t-il de Scrum?}
@@ -47,58 +51,46 @@
 \end{frame}
 
 
+\subsection{FSF-XP et Objectif}
+
 {
 \usebackgroundtemplate{\includegraphics[scale=0.42]{img/rocket.jpg}}%
 \begin{frame}{F-Safe Extreme Programming}
-  De nouvelle méthode sont apparus suite aux observations des différentes séance de developpement:
   \begin{exampleblock}{FSF-XP}
     \begin{itemize}
-    \item (bi|tri)nôme
-    \item si un (bi|tri)nôme fonctionne, il se stabilise sinon il y a roulement
+    \item ((bi|tri)nôme|petit-groupe)
+    \item si un sous-groupe fonctionne, il se stabilise sinon il y a roulement
     \item review sur retro-projecteur du code avec toute l'équipe
-    \item la bulle (avec ou sans fenêtre)
-    \item 1 consultant qui consulte les bulles et réponds au questions diverses
-    \item deadline plus courte
+    \item Sprint avant livraison
     \end{itemize}
   \end{exampleblock}
 \end{frame}
 }
 
-\begin{frame}{Environnement technique}
+\begin{frame}{FSF-XP Sprint}
+  \begin{itemize}
+  \item début de séance: On note les taches et les propriétaires au tableau
+  \item on definit les taches à réaliser avant manger (\emph{manger blocker})
+  \item lorsque un groupe finit une taches, on applaudit et on réassigne
+  \end{itemize}
+\end{frame}
+
+
+\begin{frame}{FSF-XP Sprint}
   \begin{block}{}
+    ``[...]it takes you a while to get into it and it takes 
+    you a while to get back and remember where you were[...]''\footnote{G.Mark C.S Dep California}
+  \end{block}
+  \begin{block}{la bulle}
     \begin{itemize}
-      \item \sout{utilisation de gitHub comme bug tracker}
-      \item utilisation de \emph{Lighthouse}: fsafe.lighthouseapp.com (plus simple et clair)
-        \begin{itemize}
-          \item 3 états: \{open, resolved, hold\}
-          \item notifications par email
-        \end{itemize}
-      \item mise en place de \emph{pre-commit hook}
+    \item on met en place les bulles (avec ou sans fenêtre)
+    \item un consultant qui consulte les bulles et réponds au questions diverses
     \end{itemize}
   \end{block}
 \end{frame}
 
-\begin{frame}{Calendrier}
-  \begin{itemize}
-    \item implémentation (cycle régulier) 
-    \item sprint 1, 9/10 Mars
-    \item démo client, 12 Mars => \emph{Objectif OK!}
-    \item sprint 2, 14/15 Mars
-    \item release Candidate 18 Mars => \emph{Objectif OK!}
-    \item stabilisation de la Release
-    \item livraison, 21 Mars
-  \end{itemize}
-\end{frame}
 
-\begin{frame}{Déroulement d'un F-Safe day}
-  \begin{itemize}
-  \item début de séance: On note les taches et les propriétaires au tableau
-  \item on definit les taches à réaliser avant manger (\emph{manger blocker})
-  \item lorsque un groupe finis une taches, on applaudis et on réassigne
-  \end{itemize}
-\end{frame}
-
-\begin{frame}{Déroulement d'un F-Safe day}
+\begin{frame}{Déroulement d'une séance}
   \begin{figure}
     \includegraphics[scale=0.27]{img/FSafeDay.png}
   \end{figure} 
@@ -112,7 +104,21 @@
       \item le directeur technique est le seul à fermer la \emph{RC} pour la demo client
     \end{itemize}
   \end{block}
-
-  Laissons-lui la parole...
 \end{frame}
+
+
+\subsection{Faisons un point...}
+
+\begin{frame}{Calendrier}
+  \begin{itemize}
+    \item implémentation (cycle régulier) 
+    \item sprint 1, 9/10 Mars
+    \item démo client, 12 Mars => \emph{Objectif OK!}
+    \item sprint 2, 14/15 Mars
+    \item Release Candidate 18 Mars => \emph{Objectif OK!}
+    \item stabilisation de la Release
+    \item livraison, 21 Mars
+  \end{itemize}
+\end{frame}
+
 

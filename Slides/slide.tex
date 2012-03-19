@@ -13,6 +13,14 @@
 \usetheme{Warsaw}
 \beamersetuncovermixins{\opaqueness<1>{25}}{\opaqueness<2->{15}}
 
+\AtBeginSection[]
+{
+  \begin{frame}<beamer>
+    \frametitle{Plan}
+    \tableofcontents[currentsection]
+  \end{frame}
+}
+
 \begin{document}
  
 \title{F-Safe}
@@ -37,7 +45,7 @@
 
 \begin{frame}
   \frametitle{Plan}
-  \tableofcontents
+  \tableofcontents[section]
 \end{frame} 
 
 \input{inc/g_proj1}
