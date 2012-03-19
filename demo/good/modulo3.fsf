@@ -5,12 +5,12 @@ let(zerofun:(nat)->nat = fun(x:nat) :nat => case x {
   | Succ(xx:nat) => deuxfun(xx)
 },
 unfun:(nat)->nat = fun(x:nat) :nat => case x {
-|Zero => Succ(Zero)
-| Succ(xx:nat) => zerofun(xx)
+  | Zero => Succ(Zero)
+  | Succ(xx:nat) => zerofun(xx)
 },
 deuxfun:(nat)->nat = fun(x:nat) :nat => case x {
-|Zero => Succ(Succ(Zero))
-| Succ(xx:nat) => unfun(xx)
+  | Zero => Succ(Succ(Zero))
+  | Succ(xx:nat) => unfun(xx)
 }) {zerofun,unfun,deuxfun}
 
 

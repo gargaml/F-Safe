@@ -147,7 +147,10 @@ and string_of_expression  e =
       ^ "\n" ^ (id_add_print ()) ^ "}"
 	
 and string_of_typed_expression e =
-  (string_of_expression e.e) ^ " : " ^ (string_of_atyp_option e.t)
+  (string_of_expression e.e) ^
+    (match e.t with
+      | None -> ""
+      | Some _ -> " : " ^ (string_of_atyp_option e.t))
     
 and string_of_fsafe f =
   let s1 = 
