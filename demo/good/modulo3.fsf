@@ -1,0 +1,18 @@
+def modtrois:(nat)->nat,unmodtrois:(nat)->nat,deuxmodtrois:(nat)->nat =
+
+let(zerofun:(nat)->nat = fun(x:nat) :nat => case x {
+  | Zero => Zero
+  | Succ(xx:nat) => deuxfun(xx)
+},
+unfun:(nat)->nat = fun(x:nat) :nat => case x {
+|Zero => Succ(Zero)
+| Succ(xx:nat) => zerofun(xx)
+},
+deuxfun:(nat)->nat = fun(x:nat) :nat => case x {
+|Zero => Succ(Succ(Zero))
+| Succ(xx:nat) => unfun(xx)
+}) {zerofun,unfun,deuxfun}
+
+
+modtrois(Succ(Succ(Succ(Succ(Zero)))))
+
