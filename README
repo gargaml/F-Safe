@@ -1,45 +1,40 @@
-New fresh repository.
+###############################################################################
+#     This file is part of FSafe.                                             #
+#                                                                             #
+#     FSafe is free software: you can redistribute it and/or modify           #
+#     it under the terms of the GNU General Public License as published by    #
+#     the Free Software Foundation, either version 3 of the License, or       #
+#     (at your option) any later version.                                     #
+#                                                                             #
+#     FSafe is distributed in the hope that it will be useful,                #
+#     but WITHOUT ANY WARRANTY; without even the implied warranty of          #
+#     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the           #
+#     GNU General Public License for more details.                            #
+#                                                                             #
+#     You should have received a copy of the GNU General Public License       #
+#     along with FSafe.  If not, see <http://www.gnu.org/licenses/>.          #
+#                                                                             #
+###############################################################################
 
 --------------------------------------------------------------------
-                        History:
+                Requirements
 --------------------------------------------------------------------
-12/08/2011:
-First, a branch for parsing.
-
-
+ocaml
+menhir
 
 --------------------------------------------------------------------
                 Make options
 --------------------------------------------------------------------
-make fsafe      build fsafe project for linux
-make fswin.exe  build fsafe project for windows
-make check      run tests
+make            build fsafe project
+make opt        build fsafe project (native)
+make depend     calculate dependencies
+make graph      build callgraph pdf file
 make clean      remove binaries and obj files of project.
 
-
-
-
-
-
-
 --------------------------------------------------------------------
-                        FAQ
+                Fsafe options
 --------------------------------------------------------------------
-                        Questions:
-                        1.1 how to run compile procedure on win32 platform ?
-
---------------------------------------------------------------------
-1.1 how to run compile procedure on win32 platform ?
---------------------------------------------------------------------
-answer  : 
-0) you must have installed MASM, FlexDLL and binaries must be in path.
-1) install some project which contain 'make' (mingw for exemple)
-2) you must have installed Visual Studio and vcvarsall.bat file must be in path(default path is ~ C:\Program Files\MVS10\VC). 
-3) Then, before compilation, run this:
-vcvarsall.bat
-
-4) run make
-mingw32-make clean
-mingw32-make fswin.exe
-
---------------------------------------------------------------------
+-v              verbose mode
+-d              debug_mode
+-i              interpretor
+-t              terminator
