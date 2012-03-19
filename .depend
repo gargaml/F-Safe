@@ -5,16 +5,14 @@ config.cmo:
 config.cmx:
 cycle.cmo: relationmatrix.cmo callgraph.cmo
 cycle.cmx: relationmatrix.cmx callgraph.cmx
-debug.cmo: config.cmo
-debug.cmx: config.cmx
 fsafe.cmo:
 fsafe.cmx:
 handler.cmo: wftype.cmo typechecker.cmo termination.cmo pprinter.cmo \
     parser.cmi lexer.cmo interpret.cmo fsafe.cmo config.cmo
 handler.cmx: wftype.cmx typechecker.cmx termination.cmx pprinter.cmx \
     parser.cmx lexer.cmx interpret.cmx fsafe.cmx config.cmx
-interpret.cmo: fsafe.cmo
-interpret.cmx: fsafe.cmx
+interpret.cmo: utils.cmo fsafe.cmo
+interpret.cmx: utils.cmx fsafe.cmx
 lexer.cmo: parser.cmi
 lexer.cmx: parser.cmx
 main.cmo: handler.cmo config.cmo

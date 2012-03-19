@@ -1,25 +1,25 @@
-def h:nat->nat->nat,f:nat->nat->nat,g:nat->nat->nat =
+def h:(nat,nat)->nat,f:(nat,nat)->nat,g:(nat,nat)->nat =
 
-let(hfun:nat->nat->nat = fun(x:nat,y:nat) :nat => case x {
+let(hfun:(nat,nat)->nat = fun(x:nat,y:nat) :nat => case x {
 | Zero => case y {
     | Zero => Zero
     | Succ(yy:nat) => hfun(x,yy)
   }
 | Succ(xx:nat) => hfun(xx,y)
 },
-ffun:nat->nat->nat = fun(x:nat,y:nat) :nat => case x {
+ffun:(nat,nat)->nat = fun(x:nat,y:nat) :nat => case x {
 |Zero => Zero
 | Succ(xx:nat) =>  case y {
     | Zero => Zero
     | Succ(yy:nat) =>let (hx:nat = gfun(xx,y),hy:nat =ffun(Succ(Succ(x)),yy)){ hfun(hx,hy)}
   }
 },
-gfun:nat->nat->nat = fun(x:nat,y:nat) :nat => case x {
+gfun:(nat,nat)->nat = fun(x:nat,y:nat) :nat => case x {
 |Zero => Zero
 | Succ(xx:nat) =>  case y {
     | Zero => Zero
     | Succ(yy:nat) =>
-    let (hy:nat = gfun(xx,Succ(Succ(y))),hx:nat =ffun(x,y)){ hfun(hx,hy)}
+    let (hy:nat = gfun(xx,Succ(y)),hx:nat =ffun(x,y)){ hfun(hx,hy)}
   
   }
 }) {hfun,ffun,gfun}

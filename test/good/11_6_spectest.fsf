@@ -1,9 +1,0 @@
-type bintree = 
-Empty 
-| Node(val:nat,left:bintree,right:bintree)
-
-def is_leaf(t:bintree) : bool = case t {
-  | Node(_:nat,Empty,Empty) => True
-  | _:bintree => False
-}
-

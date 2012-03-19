@@ -1,1 +1,0 @@
-type ord = Lower | Equal | Greater
