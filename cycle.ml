@@ -33,23 +33,29 @@ struct
 end);;
 
 let rec extand_cyclelist (cyclelist:(string * (cycle list)) list) (extanded_cyclelist:(string * (cycle list)) list) = 
-  let rec buildcyclemap (cyclemap:(cycle list) CMap.t) (cyclelist:cycle list) = 
+  let rec buildcyclemap (cyclemap:(cycle list) CMap.t) (cyclelist:(string*cycle list) list) = 
     match cyclelist with 
       | [] -> cyclemap
-      | cycle::rest ->
+      | (_,cycle)::rest ->
 	let rec buildmap cycle (map:(cycle list) CMap.t) = match cycle  with 
-	  |(f,_)::rest  -> 
-	    let newmap = 
-	      if CMap.mem  f map then 
-		CMap.add f (cycle::(CMap.find f map)) map 
-	      else 
-		CMap.add f [cycle] map 
-       	    in buildmap rest newmap
+	  |  head ::rest  ->
+	    begin
+	      match head with 
+		| (f,_)::_-> 
+		  let newmap = 
+		    if CMap.mem  f map then 
+		      CMap.add f (head::(CMap.find f map)) map 
+		    else 
+		      CMap.add f [head] map 
+			
+       		  in buildmap rest newmap  
+	      | [] -> map
+	    end
 	  |[] -> map
 	in
 	buildcyclemap (buildmap cycle cyclemap) rest
   in 
-  let extandcyclemap cyclelist = 
+  let extandcyclemap (cyclelist:(string*cycle list) list)=
     let rec extand_cycle (bindings:(string*cycle list) list) (history:cycle list) map =
       match bindings with 
 	| [] -> history
@@ -98,7 +104,7 @@ let rec extand_cyclelist (cyclelist:(string * (cycle list)) list) (extanded_cycl
   in
  match cyclelist with 
    | [] -> extanded_cyclelist
-   | (f,cycles)::rest -> extand_cyclelist rest ((f,(extandcyclemap cycles))::extanded_cyclelist)
+   | (f,cycles)::rest -> extand_cyclelist rest ((f,(extandcyclemap [(f,cycles)]))::extanded_cyclelist)
 
 let rec explore_couple callgraph cycle history = function
   | funname, edges ->
