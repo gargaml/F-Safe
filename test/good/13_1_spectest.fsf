@@ -1,3 +1,0 @@
-type ntree[T]= Node(e:T,f:forest[T])
-and forest[T]= FNil | FCons(n:ntree[T],f:forest[T])
-
