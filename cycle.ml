@@ -50,11 +50,11 @@ let rec extand_cyclelist (cyclelist:(string * (cycle list)) list) (extanded_cycl
 	buildcyclemap (buildmap cycle cyclemap) rest
   in 
   let extandcyclemap cyclelist = 
-    let rec extand_cycle bindings (history:cycle list) map =
+    let rec extand_cycle (bindings:(string*cycle list) list) (history:cycle list) map =
       match bindings with 
 	| [] -> history
 	|  (f,cyclelist)::rest -> 
-	  let rec treat_cycle  cycle (beginning:cycle list ) (fextand:cycle  list) map =
+	  let rec treat_cycle  (cycle:cycle) (beginning:cycle list ) (fextand:cycle  list) map =
 	    match cycle with 
 	      |[] -> beginning
 	      |(calling,cg)::rest -> 
@@ -70,6 +70,7 @@ let rec extand_cyclelist (cyclelist:(string * (cycle list)) list) (extanded_cycl
 		  cycle_expanders_beginners
 		in
 		  if calling = f then
+
 		    treat_cycle rest (expand_cycle beginning fextand) fextand map
 		  else
 		    treat_cycle rest (expand_cycle beginning (CMap.find calling map)) fextand map
