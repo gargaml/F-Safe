@@ -13,13 +13,14 @@
 \usetheme{Warsaw}
 \beamersetuncovermixins{\opaqueness<1>{25}}{\opaqueness<2->{15}}
 
-\AtBeginSection[]
-{
-  \begin{frame}<beamer>
+\AtBeginSection[]{
+  \begin{frame}
     \frametitle{Plan}
-    \tableofcontents[currentsection]
+    \tableofcontents[currentsection,hideallsubsections]
   \end{frame}
 }
+\beamertemplatenavigationsymbolsempty
+\addtobeamertemplate{footline}{\hfill\insertframenumber/\inserttotalframenumber\hspace{2em}\null}
 
 \begin{document}
  
@@ -46,7 +47,7 @@
 
 \begin{frame}
   \frametitle{Plan}
-  \tableofcontents[section]
+  \tableofcontents[section,hideallsubsections]
 \end{frame} 
 
 \input{inc/g_proj1}

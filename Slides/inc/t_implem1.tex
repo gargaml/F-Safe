@@ -1,0 +1,91 @@
+\section{Le langage F-Safe}
+
+\begin{frame}
+  \frametitle{Syntaxe concrète}
+  \begin{block}{Expressions}
+    $a, b ::= x$ \\
+    \hspace{1,2cm}$C(a_1, ..., a_n)$ \\
+    \hspace{1,2cm}$C[\tau_1, ..., \tau_m](a_1, ..., a_n)$ \\
+    \hspace{1,2cm}\textbf{fun} $(a_1:\tau_1, ..., a_n:\tau_n) : \tau \Rightarrow a$ \\
+%    \hspace{1,2cm}\textbf{fun} $[tvar_1, ..., tvar_m](a_1:\tau_1, ..., a_n:\tau_n) : \tau \Rightarrow a$ \\
+    \hspace{1,2cm}$a(a_1, ..., a_n)$ \\
+    \hspace{1,2cm}\textbf{let} $(x_1:\tau_1 = a_1, ..., x_n:\tau_n = a_n) \{ a \}$ \\
+    \hspace{1,2cm}\textbf{case} $a_1, ..., a_m \{ | f_1 \Rightarrow b_1 | ... | f_n \Rightarrow b_n \}$
+  \end{block}
+\end{frame}
+
+\section{Composants}
+
+\begin{frame}
+  \frametitle{Diagramme de composants}
+  TODO
+\end{frame}
+
+\section{Algorithme de terminaison}
+
+\subsection{Principes}
+
+\begin{frame}
+  \frametitle{}
+  \begin{block}{Idées}
+    \begin{itemize}
+      \item Identifier un ordre bien fondé sur les arguments de fonctions
+      \item Construire un graphe d'appels pour les fonctions
+        mutuellement récursives
+    \end{itemize}
+  \end{block}
+\end{frame}
+
+\subsection{Ordre bien fondé}
+
+\begin{frame}
+  \frametitle{}
+  \begin{block}{Loi}
+    Déconstruction (cf foetus)
+  \end{block}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Algorithme}
+\end{frame}
+
+\subsection{Matrices de paramètres}
+
+\begin{frame}
+  \frametitle{}
+  \begin{block}{}
+    \begin{itemize}
+      \item Construction de la matrice des arguments
+      \item Exemple ?
+    \end{itemize}
+  \end{block}
+  \begin{block}{Structure de données}
+    TODO
+  \end{block}
+\end{frame}
+
+\subsection{Callgraph}
+
+\begin{frame}
+  \frametitle{}
+  \begin{block}{}
+  \end{block}
+\end{frame}
+
+\section{Vers un langage ``fonctionnel''}
+
+\subsection{Typage}
+
+\begin{frame}
+  \frametitle{}
+  \begin{block}{}
+  \end{block}
+\end{frame}
+
+\subsection{Interprète}
+
+\begin{frame}
+  \frametitle{}
+  \begin{block}{}
+  \end{block}
+\end{frame}
