@@ -54,18 +54,6 @@ let string_of_env env =
       sprintf "%s\n%s -> %s" acc k (string_of_value v))
        "" (Env.bindings env))
 
-(* build_env : value Env.t -> Fsafe.global_definition -> value Env.t *)
-let rec build_env env def =
-  match def with
-    | GDef ((varname, _), exp) ->
-      begin match exp.e with
-	| EAbs (_, params, exp) ->
-	  Env.add varname (Fun (varname, List.map fst params, exp)) env
-	| _ -> failwith "GlobalDef must be an abstraction definition"
-      end
-    | GRecDef _ ->
-      failwith "not yet implemented"
-
 (* eval_expr : value Env.t -> Fsafe.typed_expression -> value *)
 let rec eval_expr env e =
   match e.e with
@@ -118,6 +106,39 @@ and eval_match env dc args ps =
 	  | PVar (v, _) -> failwith "Non-flat pattern to be implemented"
 	end
   in f ps
+
+
+let rec assoc env vars exps = 
+  match vars,exps with
+    | [],[] -> env
+    | [],_ | _,[] -> failwith "error in number of arguments"
+    | (v,_)::vs,e::es ->  assoc (Env.add v (eval_expr env e) env) vs es
+ 
+
+(* build_env : value Env.t -> Fsafe.global_definition -> value Env.t *)
+let rec build_env env def =
+  match def with
+    | GDef ((varname, _), exp) ->
+      begin match exp.e with
+	| EAbs (_, params, exp) ->
+	  Env.add varname (Fun (varname, List.map fst params, exp)) env
+	| _ -> failwith "GlobalDef must be an abstraction definition"
+      end
+    | GRecDef (typvars,exp) ->
+      begin match exp.e with
+	| ELet(ls, es) ->  
+	  let env' = List.fold_left
+	    (fun ev ((v,_), e) -> 
+	      match e.e with
+		| EAbs (_, params, exp) ->
+		  Env.add v (Fun (v, List.map fst params, exp)) ev
+		| _ -> failwith "GlobalDef must be an abstraction definition"
+	    )
+	    env ls in
+	  assoc env' typvars es
+	    
+	| _ -> failwith "GlobalDef must be an abstraction definition"
+      end
       
 (* interpret : Fsafe.fsafe -> () *)
 let interpret ast =
