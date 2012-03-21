@@ -1,0 +1,20 @@
+type even = EZero | ENext(n:odd)
+
+type odd = ONext(n:even)
+
+
+
+def even_to_nat:(even)->nat,odd_to_nat:(odd)->nat =
+let(even:(even)->nat=fun(n:even) : nat =>
+case n {
+| EZero => Zero
+| ENext(o:odd) => Succ(odd(o))
+},
+odd:(odd)->nat=fun(n:odd) : nat =>
+case n {
+| Onext(e:even) => Succ(even(e))
+}) { even,odd }
+
+
+even_to_nat(ENext(ONext(ENext(ONext(EZero))))),
+odd_to_nat(ONext(ENext(ONext(ENext(ONext(EZero))))))
