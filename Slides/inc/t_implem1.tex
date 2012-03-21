@@ -102,7 +102,6 @@
 \end{frame}
 
 \subsection{Callgraph}
-
 \begin{frame}
   \frametitle{Construction du graphe d'appels}
   \begin{block}{Objectif}
@@ -110,19 +109,35 @@
   \end{block}
   \begin{block}{Structures de données}
     \begin{itemize}
-      \item Le graphe : une Map qui associe un nom de fonction (appelante) à une liste d'arcs sortants
-      \item Un arc : la fonction appelée et les noms des paramètres
-      \item Une table pour retenir les fonctions traitées et ne pas parcourir l'AST à l'infini
+    \item Le graphe : une Map qui associe un nom de fonction (appelante) à une liste d'arcs sortants
+    \item Un arc : la fonction appelée et les noms des paramètres
+      ainsi que la matrice associé
+    \item Une table pour retenir les fonctions traitées et ne pas parcourir l'AST à l'infini
     \end{itemize}
   \end{block}
 \end{frame}
 
 \begin{frame}
-  \frametitle{Détection de cycles et complétion du graphe}
-  \begin{block}{}
+  \frametitle{Détection de cycles et terminaison}
+  \begin{block}{Un Cycle}
+    Un cycle est une liste de couple
+    \begin{itemize}
+    \item nom de la fonction appelante 
+    \item arc du callgraph de la fonction appelante vers fonction appelée
+    \end{itemize}
+  \end{block}
+  \begin{block}{Détection de cycles}
+    \begin{itemize}
+    \item On parcours le graphe d'appel d'une fonction, en gardant un
+      historique des fonction appelés
+    \item Si on retombe sur une fonction de l'historique, on ajoute le
+      cycle
+    \item Une fois tout les cycles directs obtenus, refaire une passe
+      pour composer les cycles entre eux
+    \end{itemize}
   \end{block}
 \end{frame}
-
+  
 \section{Vers un langage ``fonctionnel''}
 
 \subsection{Typage}
