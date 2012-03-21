@@ -7,8 +7,9 @@ case n {
 odd:(nat)->bool=fun(n:nat) : bool =>
 case n {
 | Zero => False
-| Succ(Zero) => True
-| Succ(m:nat) => even(m)
+ | Succ(m:nat) => case m {
+    | Zero => True
+    | Succ(p:nat) => even(m)}
 }) { even,odd }
 
 
