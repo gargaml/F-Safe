@@ -1,13 +1,26 @@
 \section{Le langage F-Safe}
 
 \begin{frame}
+  \frametitle{F-Safe}
+  \begin{block}{F-Safe est...}
+    \begin{itemize}
+      \item Un langage de modélisation
+      \item Fonctionnel pur
+      \item Terminant
+      \item Typé statiquement
+      \item A types inductifs
+      \item A types polymorphes
+    \end{itemize}
+  \end{block}
+\end{frame}
+
+\begin{frame}
   \frametitle{Syntaxe concrète}
   \begin{block}{Expressions}
     $a, b ::= x$ \\
     \hspace{1,2cm}$C(a_1, ..., a_n)$ \\
     \hspace{1,2cm}$C[\tau_1, ..., \tau_m](a_1, ..., a_n)$ \\
     \hspace{1,2cm}\textbf{fun} $(a_1:\tau_1, ..., a_n:\tau_n) : \tau \Rightarrow a$ \\
-%    \hspace{1,2cm}\textbf{fun} $[tvar_1, ..., tvar_m](a_1:\tau_1, ..., a_n:\tau_n) : \tau \Rightarrow a$ \\
     \hspace{1,2cm}$a(a_1, ..., a_n)$ \\
     \hspace{1,2cm}\textbf{let} $(x_1:\tau_1 = a_1, ..., x_n:\tau_n = a_n) \{ a \}$ \\
     \hspace{1,2cm}\textbf{case} $a_1, ..., a_m \{ | f_1 \Rightarrow b_1 | ... | f_n \Rightarrow b_n \}$
@@ -39,9 +52,17 @@
 \subsection{Ordre bien fondé}
 
 \begin{frame}
-  \frametitle{}
-  \begin{block}{Loi}
-    Déconstruction (cf foetus)
+  \frametitle{Ordre bien fondé}
+  \begin{block}{Relations}
+    3 types de relation :
+    \begin{itemize}
+    \item \textbf{<} : ``inférieur à''
+    \item \textbf{=} : ``égal à''
+    \item \textbf{?} : incomparables (peut être une relation ``inférieur à'', ``égal'', ou ``supérieur à'')
+    \end{itemize}
+  \end{block}
+  \begin{block}{Loi de déconstruction}
+    Soient $x$ et $y$ des variables, et $C$ un constructeur. Si $x = C(y)$, alors on déduit $y \textbf{<} x$.
   \end{block}
 \end{frame}
 
