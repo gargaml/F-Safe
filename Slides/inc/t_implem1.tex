@@ -18,21 +18,21 @@
   \frametitle{Syntaxe concrète}
   \begin{block}{Expressions}
     $a, b ::= x$ \\
-    \hspace{1,2cm}$C(a_1, ..., a_n)$ \\
-    \hspace{1,2cm}$C[\tau_1, ..., \tau_m](a_1, ..., a_n)$ \\
-    \hspace{1,2cm}\textbf{fun} $(a_1:\tau_1, ..., a_n:\tau_n) : \tau \Rightarrow a$ \\
-    \hspace{1,2cm}$a(a_1, ..., a_n)$ \\
-    \hspace{1,2cm}\textbf{let} $(x_1:\tau_1 = a_1, ..., x_n:\tau_n = a_n) \{ a \}$ \\
-    \hspace{1,2cm}\textbf{case} $a_1, ..., a_m \{ | f_1 \Rightarrow b_1 | ... | f_n \Rightarrow b_n \}$
+    \hspace{1,2cm}| $C(a_1, ..., a_n)$ \\
+    \hspace{1,2cm}| $C[\tau_1, ..., \tau_m](a_1, ..., a_n)$ \\
+    \hspace{1,2cm}| \textbf{fun} $(a_1:\tau_1, ..., a_n:\tau_n) : \tau \Rightarrow a$ \\
+    \hspace{1,2cm}| $a(a_1, ..., a_n)$ \\
+    \hspace{1,2cm}| \textbf{let} $(x_1:\tau_1 = a_1, ..., x_n:\tau_n = a_n) \{ a \}$ \\
+    \hspace{1,2cm}| \textbf{case} $a_1, ..., a_m \{ | f_1 \Rightarrow b_1 | ... | f_n \Rightarrow b_n \}$
   \end{block}
 \end{frame}
 
-\section{Composants}
+%\section{Composants}
 
-\begin{frame}
-  \frametitle{Diagramme de composants}
-  TODO
-\end{frame}
+%\begin{frame}
+%  \frametitle{Diagramme de composants}
+%  TODO
+%\end{frame}
 
 \section{Algorithme de terminaison}
 
@@ -45,6 +45,7 @@
       \item Identifier un ordre bien fondé sur les arguments de fonctions
       \item Construire un graphe d'appels pour les fonctions
         mutuellement récursives
+      \item Détecter des cycles dans le graphe d'appels
     \end{itemize}
   \end{block}
 \end{frame}
@@ -68,6 +69,18 @@
 
 \begin{frame}
   \frametitle{Algorithme}
+  \begin{block}{Structure de données}
+    \begin{itemize}
+    \item Arbre de noms de variables
+    \end{itemize}
+  \end{block}
+  \begin{block}{Algorithme}
+    Parcours du corps de la fonction :
+    \begin{itemize}
+      \item Lors d'une déconstruction ($x = C(y)$), on ajoute le lien de parenté entre les variables ($y < x$)
+      \item Lors d'un appel de fonction, on vérifie les parentés entre les variables dans l'arbre
+    \end{itemize}
+  \end{block}
 \end{frame}
 
 \subsection{Matrices de paramètres}
@@ -77,18 +90,35 @@
   \begin{block}{}
     \begin{itemize}
       \item Construction de la matrice des arguments
-      \item Exemple ?
     \end{itemize}
   \end{block}
   \begin{block}{Structure de données}
-    TODO
+  \end{block}
+  \begin{block}{Limites}
+    \begin{itemize}
+      \item Nécessité de conserver l'ordre des arguments d'une fonction récursive
+    \end{itemize}
   \end{block}
 \end{frame}
 
 \subsection{Callgraph}
 
 \begin{frame}
-  \frametitle{}
+  \frametitle{Construction du graphe d'appels}
+  \begin{block}{Objectif}
+    Représenter tous les appels de fonctions pour détecter d'éventuels appels mutuellement récursifs
+  \end{block}
+  \begin{block}{Structures de données}
+    \begin{itemize}
+      \item Le graphe : une Map qui associe un nom de fonction (appelante) à une liste d'arcs sortants
+      \item Un arc : la fonction appelée et les noms des paramètres
+      \item Une table pour retenir les fonctions traitées et ne pas parcourir l'AST à l'infini
+    \end{itemize}
+  \end{block}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Détection de cycles et complétion du graphe}
   \begin{block}{}
   \end{block}
 \end{frame}
