@@ -119,39 +119,102 @@
 
 \begin{frame}
   \frametitle{Détection de cycles et terminaison}
-  \begin{block}{Un Cycle}
-    Un cycle est une liste de couple
+  \begin{block}{Cycle : structure de données}
+    Une liste de couple
     \begin{itemize}
-    \item nom de la fonction appelante 
-    \item arc du callgraph de la fonction appelante vers fonction appelée
+    \item Nom de la fonction appelante 
+    \item Arc du callgraph de la fonction appelante vers fonction appelée
     \end{itemize}
   \end{block}
   \begin{block}{Détection de cycles}
     \begin{itemize}
-    \item On parcours le graphe d'appel d'une fonction, en gardant un
-      historique des fonction appelés
-    \item Si on retombe sur une fonction de l'historique, on ajoute le
+    \item Parcours du graphe d'appels d'une fonction, en gardant un
+      historique des fonctions appelées
+    \item Lorsqu'on retombe sur une fonction de l'historique, ajout du
       cycle
     \item Une fois tout les cycles directs obtenus, refaire une passe
       pour composer les cycles entre eux
     \end{itemize}
   \end{block}
 \end{frame}
-  
+
 \section{Vers un langage ``fonctionnel''}
 
 \subsection{Typage}
 
 \begin{frame}
-  \frametitle{}
-  \begin{block}{}
+  \frametitle{Typage}
+  \begin{block}{Caractéristiques}
+    \begin{itemize}
+    \item Statique
+    \item Polymorphe
+    \item Assimilable à System F
+    \end{itemize}
+  \end{block}
+  \begin{block}{Implémentation}
+    Typechecking en trois passes :
+    \begin{itemize}
+      \item Vérification du bien-fondé des types déclarés et création d'un Map de schémas de type
+      \item Décoration de chaque expression de l'AST avec son type
+      \item Vérification des types
+    \end{itemize}
   \end{block}
 \end{frame}
 
 \subsection{Interprète}
 
-\begin{frame}
-  \frametitle{}
-  \begin{block}{}
-  \end{block}
+\begin{frame}{Interprète}
+  \begin{itemize}
+  \item Evaluer le code (AST) à la volée
+  \item Environnement pour retenir les valeurs des variables
+    \begin{block}{Value}
+      type value =
+      | Cons of string * value list
+      | Fun of string * string list * typed\_expression
+    \end{block}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Interprète}
+  \begin{itemize}
+  \item Remplir l'environnement initial avec les définitions globales
+  \item Récursion et $pattern matching$ sur les noeuds de l'AST :
+    \begin{itemize}
+    \item EVar : liaison del'identifiant à une $value$
+    \item EConApp : valeur construite avec une liste d'expressions
+    \item ELet : enrichir l'environnement avant d'évaluer le corps du let
+    \item EApp : pas d'application partielle, enrichissement de l'environnement avec les valeurs des paramètres puis évaluation du corps
+    \item ECase : tester l'\'egalit\'e du constructeur et lier la valeur \`a la variable dans l'environnement au moment d'évaluer l'expression.
+    \item possibilit\'e d'imbrication des case.
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Exemple}
+  \begin{exampleblock}{valeurs initiales}
+    def is\_even:(nat) $\rightarrow$ bool,is\_odd:(nat) $\rightarrow$ bool =
+    let(even:(nat) $\rightarrow$ bool=fun(n:nat) : bool $\Rightarrow$
+    case n {
+      | Zero $\Rightarrow$ True
+      | Succ(m:nat) $\Rightarrow$ odd(m)
+    },
+    odd:(nat)->bool=fun(n:nat) : bool =>
+    case n {
+      | Zero => False
+      | Succ(m:nat) => case m {
+        | Zero => True
+        | Succ(p:nat) => even(m)}
+    }) { even,odd }
+    
+    is\_even(Succ(Succ(Zero))),
+    is\_odd(Succ(Succ(Zero)))
+  \end{exampleblock}
+  \begin{exampleblock}{nouvelles valeurs}
+    ./fsafe -i demo/good/even\_odd.fsf 
+    
+    [X] Function "is\_even" passes termination check
+    [X] Function "is\_odd" passes termination check
+    True()
+    False()
+  \end{exampleblock}
 \end{frame}
