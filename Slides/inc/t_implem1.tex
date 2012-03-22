@@ -168,9 +168,9 @@
   \item Evaluer le code (AST) à la volée
   \item Environnement pour retenir les valeurs des variables
     \begin{block}{Value}
-      type value =
-      | Cons of string * value list
-      | Fun of string * string list * typed\_expression
+      type value =\\
+      | Cons of string * value list\\
+      | Fun of string * string list * typed\_expression\\
     \end{block}
   \end{itemize}
 \end{frame}
@@ -191,30 +191,36 @@
 \end{frame}
 
 \begin{frame}{Exemple}
-  \begin{exampleblock}{valeurs initiales}
+  \begin{exampleblock}{Programme}
     def is\_even:(nat) $\rightarrow$ bool,is\_odd:(nat) $\rightarrow$ bool =
     let(even:(nat) $\rightarrow$ bool=fun(n:nat) : bool $\Rightarrow$
-    case n {
-      | Zero $\Rightarrow$ True
-      | Succ(m:nat) $\Rightarrow$ odd(m)
+    case n {\\
+      | Zero $\Rightarrow$ True\\
+      | Succ(m:nat) $\Rightarrow$ odd(m)\\
     },
-    odd:(nat)->bool=fun(n:nat) : bool =>
-    case n {
-      | Zero => False
-      | Succ(m:nat) => case m {
-        | Zero => True
-        | Succ(p:nat) => even(m)}
-    }) { even,odd }
+    odd:(nat)->bool=fun(n:nat) : bool =>\\
+    case n {\\
+      | Zero => False\\
+      | Succ(m:nat) => case m {\\
+        | Zero => True\\
+        | Succ(p:nat) => even(m)}\\
+    }) { even,odd }\\
     
     is\_even(Succ(Succ(Zero))),
     is\_odd(Succ(Succ(Zero)))
   \end{exampleblock}
-  \begin{exampleblock}{nouvelles valeurs}
+\end{frame}
+
+\begin{frame}{Exemple}
+\begin{exampleblock}{exécution}
     ./fsafe -i demo/good/even\_odd.fsf 
     
     [X] Function "is\_even" passes termination check
-    [X] Function "is\_odd" passes termination check
+    
+    [X] Function "is\_odd" passes termination  check
+    
     True()
+    
     False()
   \end{exampleblock}
 \end{frame}
