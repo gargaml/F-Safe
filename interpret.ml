@@ -119,11 +119,7 @@ let rec assoc env vars exps =
 let rec build_env env def =
   match def with
     | GDef ((varname, _), exp) ->
-      begin match exp.e with
-	| EAbs (_, params, exp) ->
-	  Env.add varname (Fun (varname, List.map fst params, exp)) env
-	| _ -> failwith "GlobalDef must be an abstraction definition"
-      end
+      Env.add varname (eval_expr env exp) env
     | GRecDef (typvars,exp) ->
       begin match exp.e with
 	| ELet(ls, es) ->  
