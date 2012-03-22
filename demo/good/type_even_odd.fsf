@@ -12,7 +12,7 @@ case n {
 },
 odd:(odd)->nat=fun(n:odd) : nat =>
 case n {
-| Onext(e:even) => Succ(even(e))
+| ONext(e:even) => Succ(even(e))
 }) { even,odd }
 
 
