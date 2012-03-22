@@ -1,3 +1,0 @@
-type even = Zero | ENext(n:odd)
-and odd = ONext(m:even)
-

@@ -26,8 +26,10 @@ open Fsafe
 open Callgraph
 open Relationmatrix
 open Cycle
+
 module SSet = Set.Make(String)
 
+(* diagonal_check : Relationmatrix.relationmatrix -> bool *)
 let diagonal_check matrix =
     let ok = ref false in
     let i = ref 0 in
@@ -41,7 +43,8 @@ let diagonal_check matrix =
     done;
     !ok
 
-
+(* is_terminating :
+   ('a * ('b * 'c * 'd * Relationmatrix.relationmatrix)) list list -> bool *)
 let rec is_terminating cycles =
   let check_cycle cycle =
     let rec process_matrice cycle base_matrice = 
@@ -63,31 +66,27 @@ let rec is_terminating cycles =
       then is_terminating rest 
       else false
 
-
-
-(* termination_check : ?? -> ?? *)
+(* termination_check : Fsafe.fsafe -> (Callgraph.CallGraph.key * bool) list *)
 let termination_check fsafe =
-  
+
   let functions =
     List.fold_left (fun acc e -> (look_for_call e)@acc) [] fsafe.entry
   in
   
   (* callgraph building *)
-  if !verbose then printf "   *** Building callgraph...\n";
+  if !verbose || !debug_on then printf "*** Building callgraph...\n";
   let g = Callgraph.build_callgraph fsafe functions CallGraph.empty in
-  if !terminator_on then (
+  if !debug_on then (
     Callgraph.dot_of_callgraph g;
-    printf "callgraph saved in callgraph.dot\n"
+    printf "Callgraph saved in callgraph.dot\n"
   );
   
-  (* TODO : cycles detection *)
-  if  !verbose then printf "   *** Processing cycles...\n";
+  (* cycles detection *)
+  if !verbose || !debug_on then printf "*** Processing cycles...\n";
   let cycles = get_all_cycles g functions in 
   if !debug_on then (
-    printf "here are the cycles in your program :\n%s" (string_of_cycles cycles );
-
+    printf "Cycles in the program :\n%s"
+      (string_of_cycles cycles );
   );
-  (* TODO : graph completion *)
- 
- List.map (fun (fname,cycle) -> (fname,is_terminating cycle)) cycles
   
+ List.map (fun (fname,cycle) -> (fname,is_terminating cycle)) cycles

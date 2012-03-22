@@ -1,1 +1,0 @@
-type bad9[T] = Bad9(n:bad9[bad10[T]]) and bad10[T] = Bad10(e:bad9[T])

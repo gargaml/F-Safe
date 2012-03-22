@@ -1,1 +1,0 @@
-type option[T] = None | Some(v:T)

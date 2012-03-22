@@ -31,15 +31,18 @@ let string_of_list fn sep lst =
 
 let fcount = ref 0
 
+(* fresh : () -> string *)
 let fresh () =
   fcount := !fcount + 1;
   "v" ^ (string_of_int !fcount)
 
+(* fun_indent : int -> string *)
 let rec fun_indent i =
   match i with
     | 0 -> ""
     | _ -> "  " ^ (fun_indent (i - 1))
 
+(* suppr_indent : int -> string -> string *)
 let rec suppr_indent i t =
   match (i,t) with
     | ( 0, _) -> t
@@ -49,51 +52,50 @@ let idt = "  "
 
 let icpt = ref 0
 
-let debug_test () = " icpt is "^ (string_of_int !icpt) ^") "
-
-let rec print_count txt nb=
+(* print_count : string -> int -> string *)
+let rec print_count txt nb =
   match nb with
     | 0 -> ""
     | nb when nb<0 -> failwith "negative icpt number"
     | nb -> txt ^ (print_count txt (nb-1))
   
-(* increases indent counting then print*)
+(* increases indent counting then print *)
+(* id_add_print : () -> string *)
 let id_add_print () =
-  icpt:= !icpt +1;
+  icpt := !icpt +1;
   (print_count idt !icpt)
-(*  ^ " (add_print "^  debug_test ();*)
 
 (* print then increases indent counting*)
+(* id_print_add : () -> string *)
 and id_print_add () =
-  icpt:= !icpt +1;
+  icpt := !icpt +1;
   (print_count idt ((!icpt) - 1))
-(*  ^ " (print_add " ^ debug_test ();*)
 
 (* decreases indent counting then print*)
+(* id_min_print : () -> string *)
 and id_min_print () =
-  icpt:= !icpt -1;
+  icpt := !icpt -1;
   (print_count idt (!icpt))
-(*  ^ " (min_print" ^debug_test ();*)
 
 (* print then decreases indent counting*)
+(* id_print_min : () -> string *)
 and id_print_min () =
-  icpt:= !icpt -1;
+  icpt := !icpt -1;
   (print_count idt ((!icpt) + 1))
-(*  ^ " (print_min" ^debug_test ();*)
 
 (* print icpt indentations *)
+(* id_print : () -> string *)
 and id_print () =
   (print_count idt (!icpt))
-(*  ^" (print" ^debug_test ();*)
 
 (* increases icpt *)
+(* id_add : () -> string *)
 and id_add () =
-  icpt:= (!icpt) + 1;
+  icpt := (!icpt) + 1;
   ""
-(*  ^" (id_add" ^ debug_test ();*)
 
 (* decreases icpt *)
+(* id_min : () -> string *)
 and id_min () =
-  icpt:= (!icpt) - 1;
+  icpt := (!icpt) - 1;
   ""
-(*  ^ " (id_min" ^ debug_test ();*)

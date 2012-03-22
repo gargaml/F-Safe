@@ -1,1 +1,0 @@
-type nat = Zero | Succ(n:nat)

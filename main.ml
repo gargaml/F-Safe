@@ -44,15 +44,42 @@ let doc_terminator = "Set terminator mode"
 
 (* entry point *)
 (* main : () -> () *)
-let main () = 
-  try
-    Arg.parse
+let main () =
+  let liste =  
       [
 	"-v", Arg.Set verbose, doc_verbose;
 	"-d", Arg.Set debug_on, doc_debug_on;
 	"-i", Arg.Set interpretor_on, doc_interpretor;
 	"-t", Arg.Set terminator_on, doc_terminator;
       ]
+	in
+   if ( 1 == Array.length Sys.argv ) then
+	  begin
+       Printf.printf "Usage : %s " Sys.argv.(0) ;
+       let rec aaaa a = 
+         match a with
+           | (opt,_,_) :: reste -> 	
+             begin
+               Printf.printf "[%s] " opt ;
+               aaaa reste ;
+             end
+           | [] -> Printf.printf "filename\n" ;
+       in aaaa liste ;
+
+       Printf.printf "%s\n" errmsg ;
+       let rec aaaa a = 
+         match a with
+           | (opt,_,texte) :: reste -> 	
+             begin
+               Printf.printf "%s %s\n" opt texte ;
+               aaaa reste ;
+             end
+           | [] -> exit 1 ;
+       in aaaa liste ;
+     end ;
+  try
+    Arg.parse
+		liste
       interpret
       errmsg;
   with

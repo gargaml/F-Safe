@@ -22,7 +22,7 @@
 SOURCES = lexer.mll utils.ml parser.mly config.ml relationmatrix.ml pprinter.ml callgraph.ml cycle.ml fsafe.ml wftype.ml typechecker.ml termination.ml interpret.ml handler.ml main.ml
 EXEC = fsafe
 
-CAMLC = ocamlc -annot
+CAMLC = ocamlc
 CAMLOPT = ocamlopt
 CAMLDEP = ocamldep
 CAMLLEX = ocamllex

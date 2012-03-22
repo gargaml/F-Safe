@@ -1,0 +1,17 @@
+def is_even:(nat)->bool,is_odd:(nat)->bool =
+let(even:(nat)->bool=fun(n:nat) : bool =>
+case n {
+| Zero => True
+| Succ(m:nat) => odd(m)
+},
+odd:(nat)->bool=fun(n:nat) : bool =>
+case n {
+| Zero => False
+ | Succ(m:nat) => case m {
+    | Zero => True
+    | Succ(p:nat) => even(m)}
+}) { even,odd }
+
+
+is_even(Succ(Succ(Zero))),
+is_odd(Succ(Succ(Zero)))
