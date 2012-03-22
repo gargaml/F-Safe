@@ -30,10 +30,10 @@ let decorate_ast dcenv { types = ts; globals = gs; entry = es } =
       | EConApp (dc, ans, tes) ->
 	decorate_econapp aenv dc ans tes
       | ELet (tvtes, tes) ->
-	let f (tv, te) = (tv, decorate aenv te) in
 	let add acc ((v, a), _) = SMap.add v a acc in
+	let aenv' = List.fold_left add aenv tvtes in
+	let f (tv, te) = (tv, decorate aenv' te) in
 	let tvtes' = List.map f tvtes in
-	let aenv' = List.fold_left add aenv tvtes' in
 	let tes' = List.map (decorate aenv') tes in
 	{ e = ELet (tvtes', tes'); t = (List.hd tes).t }
       | EAbs (tvs, tps, te) ->
@@ -48,9 +48,10 @@ let decorate_ast dcenv { types = ts; globals = gs; entry = es } =
 	)
       | EApp (v, ans, tes) ->
 	let tes' = List.map (decorate aenv) tes in (
-	  match SMap.find v aenv with
-	    | AArrow (tp, r) -> { e = EApp (v, ans, tes'); t = Some r }
-	    | _ -> failwith "An abstraction was expected"
+	match SMap.find v aenv with
+	  | AVar v as a -> { e = EApp (v, ans, tes'); t = Some a }
+	  | AArrow (tp, r) as a -> { e = EApp (v, ans, tes'); t = Some a }
+	  | AConApp (tc, ans) as a -> { e = EApp (v, ans, tes'); t = Some a }
 	)
       | ECase (tes, ps) ->
 	let tes' = List.map (decorate aenv) tes in
@@ -90,11 +91,13 @@ let decorate_ast dcenv { types = ts; globals = gs; entry = es } =
     match d with
       | GDef ((v, t), te) ->
 	let te' = decorate aenv te in (
-	match te' with
-	  | { e = _; t = Some a } -> GDef ((v, t), te')
-	  | _ -> failwith "Unexpected..."
+	  match te' with
+	    | { e = _; t = Some a } -> GDef ((v, t), te')
+	    | _ -> failwith "Unexpected..."
 	)
-      | GRecDef (tvs, te) -> failwith "Not yet..."
+      | GRecDef (tvs, te) ->
+	let te' = decorate aenv te in
+	GRecDef (tvs, te')
   in
   let decorate_definitions aenv gs =
     let rec loop globals = function
@@ -119,6 +122,6 @@ let decorate_ast dcenv { types = ts; globals = gs; entry = es } =
     in loop aenv gs
   in
   let aenv = init SMap.empty in
-  let gs' = decorate_definitions SMap.empty gs in
+  let gs' = decorate_definitions aenv gs in
   let es' = decorate_expressions aenv es in
   { types = ts; globals = gs'; entry = es' }
