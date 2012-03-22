@@ -167,10 +167,12 @@
   \begin{itemize}
   \item Evaluer le code (AST) à la volée
   \item Environnement pour retenir les valeurs des variables
-    \begin{block}{Value}
-      type value =
-      | Cons of string * value list
-      | Fun of string * string list * typed\_expression
+    \begin{block}{Résultat}
+      Un type $value$ :
+      \begin{itemize}
+        \item Une valeur construite (type inductif)
+        \item Une valeur fonctionnelle
+      \end{itemize}
     \end{block}
   \end{itemize}
 \end{frame}
@@ -178,43 +180,54 @@
 \begin{frame}{Interprète}
   \begin{itemize}
   \item Remplir l'environnement initial avec les définitions globales
-  \item Récursion et $pattern matching$ sur les noeuds de l'AST :
+  \item Récursion et \begin{it}pattern matching\end{it} sur les
+    noeuds de l'AST :
     \begin{itemize}
-    \item EVar : liaison del'identifiant à une $value$
-    \item EConApp : valeur construite avec une liste d'expressions
-    \item ELet : enrichir l'environnement avant d'évaluer le corps du let
-    \item EApp : pas d'application partielle, enrichissement de l'environnement avec les valeurs des paramètres puis évaluation du corps
-    \item ECase : tester l'\'egalit\'e du constructeur et lier la valeur \`a la variable dans l'environnement au moment d'évaluer l'expression.
-    \item possibilit\'e d'imbrication des case.
+    \item EVar : liaison de l'identifiant à une $value$
+    \item EConApp : valeur construite avec évaluation des arguments
+    \item EAbs : renvoi d'une abstraction (valeur fonctionnelle à $n$
+      paramètres)
+    \item ELet : enrichissement de l'environnement avant d'évaluer le
+      corps du let
+    \item EApp : pas d'application partielle, enrichissement de
+      l'environnement avec les valeurs des paramètres puis évaluation
+      du corps
+    \item ECase : test de l'égalité du constructeur et liaison des
+      valeurs des arguments avec les variables du filtre
     \end{itemize}
   \end{itemize}
 \end{frame}
 
-\begin{frame}{Exemple}
-  \begin{exampleblock}{valeurs initiales}
-    def is\_even:(nat) $\rightarrow$ bool,is\_odd:(nat) $\rightarrow$ bool =
-    let(even:(nat) $\rightarrow$ bool=fun(n:nat) : bool $\Rightarrow$
-    case n {
-      | Zero $\Rightarrow$ True
-      | Succ(m:nat) $\Rightarrow$ odd(m)
-    },
-    odd:(nat)->bool=fun(n:nat) : bool =>
-    case n {
-      | Zero => False
-      | Succ(m:nat) => case m {
-        | Zero => True
-        | Succ(p:nat) => even(m)}
-    }) { even,odd }
-    
-    is\_even(Succ(Succ(Zero))),
-    is\_odd(Succ(Succ(Zero)))
-  \end{exampleblock}
-  \begin{exampleblock}{nouvelles valeurs}
-    ./fsafe -i demo/good/even\_odd.fsf 
-    
-    [X] Function "is\_even" passes termination check
-    [X] Function "is\_odd" passes termination check
-    True()
-    False()
-  \end{exampleblock}
+\begin{frame}
+  \frametitle{Exemple(s)}
+  Une petite démo ?
 \end{frame}
+
+%% \begin{frame}{Exemple}
+%%   \begin{exampleblock}{valeurs initiales}
+%%     def is\_even:(nat) $\rightarrow$ bool,is\_odd:(nat) $\rightarrow$ bool =
+%%     let(even:(nat) $\rightarrow$ bool=fun(n:nat) : bool $\Rightarrow$
+%%     case n {
+%%       | Zero $\Rightarrow$ True
+%%       | Succ(m:nat) $\Rightarrow$ odd(m)
+%%     },
+%%     odd:(nat)->bool=fun(n:nat) : bool =>
+%%     case n {
+%%       | Zero => False
+%%       | Succ(m:nat) => case m {
+%%         | Zero => True
+%%         | Succ(p:nat) => even(m)}
+%%     }) { even,odd }
+    
+%%     is\_even(Succ(Succ(Zero))),
+%%     is\_odd(Succ(Succ(Zero)))
+%%   \end{exampleblock}
+%%   \begin{exampleblock}{nouvelles valeurs}
+%%     ./fsafe -i demo/good/even\_odd.fsf 
+    
+%%     [X] Function "is\_even" passes termination check
+%%     [X] Function "is\_odd" passes termination check
+%%     True()
+%%     False()
+%%   \end{exampleblock}
+%% \end{frame}
