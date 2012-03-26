@@ -131,7 +131,6 @@ let rec build_cg_of_f ast globals callgraph (f,fparams) =
   match globals with 
     | [] -> callgraph
     | GDef((name,_),e) :: _ when name = f ->
-      Printf.printf "%s is found\n" f;
       begin match e.e with
 	| EAbs(_,ip,e) ->    
 	  let tree =  init_tree ip in
@@ -254,6 +253,7 @@ and look_for_call'' expr t ip cg glob ast fparams =
 		end
 	      | (_::rest,_::rest') -> check_fname rest rest'
 	      | ([],[]) -> failwith "should not happen, f must have been in list"
+	      | (_,_) -> failwith "should not happen, only to have exhaustive pattern"
 	  else
 	    f
 	in
@@ -264,19 +264,14 @@ and look_for_call'' expr t ip cg glob ast fparams =
 	    | EApp(f,_,_) -> f 
 	    | _ -> "anotherexp") es in
 	  let m = empty (List.length ip) (List.length op) in
-
-
-	  Printf.printf "matrice dim is %d %d \n" (List.length ip) (List.length op);  
 	  for i = 0 to m.nb_l - 1 do
 	    for j = 0 to m.nb_c - 1 do
-	      Printf.printf "matrice dim is %d %s %d %s\n" i (List.nth op i) j (List.nth ip j);
 	      m.data.(j).(i) <-
 		match get_relation t (List.nth ip j) (List.nth op i) with
 		  | None -> Unknown
 		  | Some s -> s
 	    done;
 	  done;
-	  	Printf.printf "matrice is %s \n" (string_of_relationmatrix' m);
 	  [(actualname, ip, op, m)]@paramcalls
 	in
        
@@ -333,7 +328,4 @@ let rec build_callgraph ast mainfuns cg  =
   match mainfuns with
     | [] ->   cg
     | (mainfun,fparams) :: rest ->
-      Printf.printf "build callgraph of %s and fparams is %s \n" mainfun ( List.fold_left 
-      (fun acc e -> acc ^ (string_of_typed_expression e) ^ "\n\n")
-      "\n" fparams); 
       build_callgraph ast rest (build_cg_of_f ast ast.globals cg (mainfun,fparams))
