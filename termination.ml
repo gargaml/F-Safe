@@ -70,12 +70,16 @@ let rec is_terminating cycles =
 let termination_check fsafe =
 
   let functions =
-    List.fold_left (fun acc e -> (look_for_call e)@acc) [] fsafe.entry
+    List.fold_left (fun acc e -> (look_for_call e)::acc) [] fsafe.entry
   in
   
   (* callgraph building *)
   if !verbose || !debug_on then printf "*** Building callgraph...\n";
-  let g = Callgraph.build_callgraph fsafe functions CallGraph.empty in
+  let g = List.fold_left (fun cg f_fun ->CallGraph.merge 
+    (fun key a b -> match (a,b) with |(Some s1, Some s2) -> Some (s1@s2)
+      |(Some s, None) -> Some s
+      |(None,Some s) -> Some s
+      |(None,None) -> None) cg  (Callgraph.build_callgraph fsafe f_fun CallGraph.empty) )CallGraph.empty functions in
   if !debug_on then (
     Callgraph.dot_of_callgraph g;
     printf "Callgraph saved in callgraph.dot\n"
@@ -83,7 +87,7 @@ let termination_check fsafe =
   
   (* cycles detection *)
   if !verbose || !debug_on then printf "*** Processing cycles...\n";
-  let cycles = get_all_cycles g functions in 
+  let cycles = List.fold_left (fun acc f_fun -> (get_all_cycles g f_fun)@acc) [] functions in 
   if !debug_on then (
     printf "Cycles in the program :\n%s"
       (string_of_cycles cycles );

@@ -97,7 +97,7 @@ let rec look_for_call e =
 	@ (List.flatten(List.fold_left
 			  (fun acc b -> look_for_call b :: acc) [] b))
       | EApp(f, _, es) -> 
-	List.fold_left (fun acc e -> (look_for_call e)@acc) [f] es
+	List.fold_left (fun acc e -> (look_for_call e)@acc) [(f,es)] es
       | ECase(es, fs) ->
 	(List.fold_left (fun acc e -> (look_for_call e)@acc) [] es)
 	@ (List.fold_left
@@ -123,20 +123,21 @@ let dot_of_callgraph graph =
    (Fsafe.variable * Fsafe.parameter list * Fsafe.variable list *
    Relationmatrix.relationmatrix)
    list CallGraph.t ->
-   Fsafe.variable ->
+   (Fsafe.variable* Fsafe.typed_expression list) ->
    (Fsafe.variable * Fsafe.parameter list * Fsafe.variable list *
    Relationmatrix.relationmatrix)
    list CallGraph.t *)
-let rec build_cg_of_f ast globals callgraph f = 
+let rec build_cg_of_f ast globals callgraph (f,fparams) = 
   match globals with 
     | [] -> callgraph
-    | GDef((name,_),e) :: _ when name = f -> 
+    | GDef((name,_),e) :: _ when name = f ->
+      Printf.printf "%s is found\n" f;
       begin match e.e with
 	| EAbs(_,ip,e) ->    
 	  let tree =  init_tree ip in
 	  let (calls,newcg) = 
 	    (look_for_call'' e tree (List.map (fun (v, _) -> v) ip) 
-	       (CallGraph.add f [] callgraph) ast.globals ast)
+	       (CallGraph.add f [] callgraph) ast.globals ast  fparams)
 	  in 
 	  CallGraph.add f calls newcg
 	| _ -> callgraph
@@ -156,7 +157,7 @@ let rec build_cg_of_f ast globals callgraph f =
 			(look_for_call'' e tree 
 			   (List.map (fun (v, _) -> v) ip) 
 			   (CallGraph.add f [] callgraph)
-			   ast.globals ast)
+			   globals ast fparams)
 		      in   
 		      CallGraph.add f calls newcg
 		    | _ -> callgraph
@@ -172,7 +173,7 @@ let rec build_cg_of_f ast globals callgraph f =
 		      (look_for_call'' e tree 
 			 (List.map (fun (v, _) -> v) ip) 
 			 (CallGraph.add f [] callgraph)
-			 ast.globals ast)
+			 globals ast fparams)
 		    in 
 		    CallGraph.add f calls newcg
 		  | EVar(s) ->
@@ -190,9 +191,9 @@ let rec build_cg_of_f ast globals callgraph f =
 	      | _ -> failwith "should not happen"
 	    in   
 	    look_for_rec (v,values)
-	  | _ -> build_cg_of_f ast rest callgraph f
+	  | _ -> build_cg_of_f ast rest callgraph (f,fparams)
       end
-    | _::rest -> build_cg_of_f ast rest callgraph f
+    | _::rest -> build_cg_of_f ast rest callgraph (f,fparams)
 
 (* look_for_call'' :
    Fsafe.typed_expression ->
@@ -202,14 +203,14 @@ let rec build_cg_of_f ast globals callgraph f =
    Relationmatrix.relationmatrix)
    list CallGraph.t ->
    Fsafe.global_definition list ->
-   Fsafe.fsafe ->
+   Fsafe.typed_expression ->
    (Fsafe.variable * Fsafe.parameter list * Fsafe.variable list *
    Relationmatrix.relationmatrix)
    list *
    (Fsafe.variable * Fsafe.parameter list * Fsafe.variable list *
    Relationmatrix.relationmatrix)
    list CallGraph.t *)
-and look_for_call'' expr t ip cg glob ast = 
+and look_for_call'' expr t ip cg glob ast fparams = 
   let rec look_for_call'' expr t ip cg =
     let rec callsinexprlist exprlist cg =
       match exprlist with 
@@ -219,7 +220,7 @@ and look_for_call'' expr t ip cg glob ast =
 	  let (restcalls,restcg) = callsinexprlist rest newcg in
 	  (calls @ restcalls , restcg) in
     match expr.e with 
-      | EConApp(_,_,es) when es != [] -> callsinexprlist es cg
+      | EConApp(_,_,es) -> callsinexprlist es cg
       | ELet (assignlist,es) -> 
 	let rec callinassigns  cg = function 
 	  | [] -> ([],cg)
@@ -241,25 +242,48 @@ and look_for_call'' expr t ip cg glob ast =
 	let (bodycalls,bodycg) = callsinexprlist es assigncg in 
 	(assigncalls@bodycalls,bodycg)
       | EApp(f, _, es) -> 
+	let (paramcalls,paramcg) = callsinexprlist es cg 
+	in
+	let rec check_fname ip fparams =
+	  if List.mem f ip then 
+	    match (ip,fparams) with 
+	      | (name::_,exp::_) when name = f -> 
+		begin	  match exp.e with 
+		  | EVar s -> s
+		  | _ -> "only function as variables are handled, lambdas can be there ...)"
+		end
+	      | (_::rest,_::rest') -> check_fname rest rest'
+	      | ([],[]) -> failwith "should not happen, f must have been in list"
+	  else
+	    f
+	in
+	let actualname = check_fname ip fparams in
 	let treat_app =
 	  let op = List.map (fun e -> match e.e with
 	    | EVar s -> s
+	    | EApp(f,_,_) -> f 
 	    | _ -> "anotherexp") es in
 	  let m = empty (List.length ip) (List.length op) in
+
+
+	  Printf.printf "matrice dim is %d %d \n" (List.length ip) (List.length op);  
 	  for i = 0 to m.nb_l - 1 do
 	    for j = 0 to m.nb_c - 1 do
+	      Printf.printf "matrice dim is %d %s %d %s\n" i (List.nth op i) j (List.nth ip j);
 	      m.data.(j).(i) <-
 		match get_relation t (List.nth ip j) (List.nth op i) with
 		  | None -> Unknown
 		  | Some s -> s
 	    done;
 	  done;
-	  [(f, ip, op, m)]
+	  	Printf.printf "matrice is %s \n" (string_of_relationmatrix' m);
+	  [(actualname, ip, op, m)]@paramcalls
 	in
-	if CallGraph.mem f cg then
-	  (treat_app, cg)
+       
+	if CallGraph.mem actualname cg then
+	  (treat_app, paramcg)
 	else 
-	  (treat_app,build_cg_of_f ast glob cg f ) 
+	  (treat_app,build_cg_of_f ast glob paramcg (actualname,es) ) 
       | ECase(es, fs) ->
 	let p = match (List.hd es).e with
 	  | EVar s -> s
@@ -308,5 +332,8 @@ and look_for_call'' expr t ip cg glob ast =
 let rec build_callgraph ast mainfuns cg  = 
   match mainfuns with
     | [] ->   cg
-    | mainfun :: rest -> 
-      build_callgraph ast rest (build_cg_of_f ast ast.globals cg mainfun)
+    | (mainfun,fparams) :: rest ->
+      Printf.printf "build callgraph of %s and fparams is %s \n" mainfun ( List.fold_left 
+      (fun acc e -> acc ^ (string_of_typed_expression e) ^ "\n\n")
+      "\n" fparams); 
+      build_callgraph ast rest (build_cg_of_f ast ast.globals cg (mainfun,fparams))

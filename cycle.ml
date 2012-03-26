@@ -179,7 +179,8 @@ next_cycle]
 
 
 let get_all_cycles callgraph mainfunc =   let main_callgraphs =
-    List.map (fun f -> (f,CallGraph.find f callgraph)) mainfunc in
+    List.map (fun (f,_
+) -> (f,CallGraph.find f callgraph)) mainfunc in
   let cycles_list = List.map 
     (fun x ->match x with | (f,_) ->
 (f, (explore_couple  callgraph [] [] x )))

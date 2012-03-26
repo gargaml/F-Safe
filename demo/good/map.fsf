@@ -1,0 +1,37 @@
+type list[T] = Nil | Cons(hd:T,tl:list[T])
+
+type nat = Zero | Succ(n:nat)
+
+type bool = True | False 
+
+
+def map[T,U](f:(T)->U,l:list[T]):list[U] = case l {
+| Nil[T] => Nil[U]
+| Cons[T](e:T,l':list[T]) => Cons[U](f(e),map[T,U](f,l'))
+}
+def up(x:nat) : nat =
+    case x {
+    	 | Zero => up(x)
+	 | Succ(n:nat) =>
+	 let (m:nat = Succ(n)) { up(m) }
+    }
+
+
+def is_even:(nat)->bool,is_odd:(nat)->bool =
+let(even:(nat)->bool=fun(n:nat) : bool =>
+case n {
+| Zero => True
+| Succ(m:nat) => odd(m)
+},
+odd:(nat)->bool=fun(n:nat) : bool =>
+case n {
+| Zero => False
+ | Succ(m:nat) => case m {
+    | Zero => True
+    | Succ(p:nat) => even(m)}
+}) { even,odd }
+
+
+
+map[nat,nat](up,Cons[nat](Succ(Zero),Nil[nat])),
+map[nat,bool](is_even,Cons[nat](Succ(Zero),Cons[nat](Succ(Succ(Zero)),Cons[nat],Succ(Succ(Succ(Zero))),Cons[nat](Succ(Succ(Succ(Succ(Zero)))),Nil[nat]))))
